@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cactus Trading — Trade smarter. Trade faster.</title>
+<style>
+  :root {
+    --accent:       #2fb673;
+    --ink:          #f3f6fc;
+    --soft:         rgba(243,246,252,0.74);
+    --mute:         rgba(243,246,252,0.5);
+    --bg:           #070b14;
+    --glass:        rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.16);
+    --black-glass:  rgba(4,7,13,0.55);
+
+    --overlay: 0.50;            /* photo scrim strength (tweakable) */
+    --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --display-weight: 700;
+    --display-tracking: -0.035em;
+    --display-leading: 1.0;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .hero {
+    position: relative;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 80% 30%, rgba(40,78,140,0.22), transparent 60%),
+      linear-gradient(165deg, #0c1322 0%, #070b14 60%, #05070d 100%);
+  }
+
+  /* ---------- full-bleed track photo ---------- */
+  .hero__band {
+    position: absolute; inset: 0;
+    z-index: 0;
+    background-image: url("assets/track-web.jpg");
+    background-size: cover;
+    background-position: center 8%;
+    filter: contrast(1.06) brightness(0.96);
+  }
+  /* cool tint + legibility scrim */
+  .hero__scrim {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(125% 80% at 50% 40%, transparent 0%, rgba(6,10,18,calc(var(--overlay))) 100%),
+      linear-gradient(180deg, rgba(6,10,18,0.4) 0%, transparent 20%, transparent 58%, rgba(6,10,18,0.88) 100%),
+      linear-gradient(0deg, rgba(40,74,132,0.10), rgba(40,74,132,0.05));
+  }
+  .hero__grain {
+    position: absolute; inset: -50%; z-index: 2; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.09;
+    mix-blend-mode: overlay;
+  }
+  body.no-grain .hero__grain { display: none; }
+
+  /* ---------- content ---------- */
+  .hero__body {
+    position: relative; z-index: 5;
+    flex: 1; display: flex; align-items: flex-start; justify-content: center;
+    padding: clamp(28px, 5vw, 64px);
+    padding-top: clamp(44px, 8vh, 96px);
+  }
+  .stage { max-width: 900px; width: 100%; text-align: center; }
+
+  .headline {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    line-height: var(--display-leading);
+    letter-spacing: var(--display-tracking);
+    font-size: clamp(46px, 8.6vw, 132px);
+    color: var(--ink);
+    text-wrap: balance;
+    margin-bottom: clamp(16px, 2.6vh, 26px);
+    text-shadow: 0 2px 40px rgba(4,8,18,0.6);
+  }
+  .tagline {
+    font-size: clamp(21px, 2.7vw, 36px);
+    font-weight: 400;
+    color: var(--soft);
+    letter-spacing: -0.02em;
+    margin-bottom: clamp(20px, 3vh, 30px);
+    text-shadow: 0 1px 22px rgba(4,8,18,0.55);
+  }
+  .tagline b { color: var(--ink); font-weight: 700; }
+
+  .slogan {
+    font-size: clamp(15px, 1.7vw, 21px);
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--soft);
+    max-width: 620px;
+    margin: 0 auto clamp(30px, 5vh, 50px);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    text-shadow: 0 1px 20px rgba(4,8,18,0.6);
+  }
+  .slogan b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- waitlist (glass) ---------- */
+  .waitlist { max-width: 620px; margin: 0 auto; }
+  .waitlist-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+
+  .brand__chip {
+    width: 62px; height: 62px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.20), rgba(255,255,255,0.07));
+    border: 1px solid rgba(255,255,255,0.26);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 20px rgba(3,7,16,0.34);
+    transform: translateZ(0);
+  }
+  .brand__chip svg { width: 32px; height: 32px; display: block; color: var(--accent); }
+
+  .form {
+    flex: 1; min-width: 0;
+    display: flex; gap: 8px;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 18px;
+    padding: 8px;
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 8px 22px rgba(3,7,16,0.32);
+    transition: box-shadow 0.2s ease;
+  }
+  .form:focus-within { box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 0 0 4px rgba(255,255,255,0.22), 0 8px 22px rgba(3,7,16,0.32); }
+  .form.shake { animation: shake 0.4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }
+  .form input {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    outline: none; border-radius: 12px;
+    color: var(--ink);
+    font-family: inherit; font-size: 16px; letter-spacing: -0.01em;
+    padding: 13px 15px;
+  }
+  .form input::placeholder { color: var(--mute); }
+  .form button {
+    flex-shrink: 0;
+    background: var(--accent);
+    color: #fff;
+    border: none; border-radius: 12px;
+    font-family: inherit; font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
+    padding: 0 22px; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(3,7,16,0.4);
+    transition: transform 0.12s ease, filter 0.18s ease;
+  }
+  .form button:hover { filter: brightness(1.08); }
+  .form button:active { transform: scale(0.97); }
+
+  .form-meta {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-top: 16px;
+    font-size: 13.5px; color: var(--soft);
+    min-height: 22px; letter-spacing: -0.005em;
+    text-shadow: 0 1px 14px rgba(4,8,18,0.5);
+  }
+  .form-meta .rec {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: rgba(120,130,145,0.4);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .form-meta .rec::after {
+    content: ""; width: 9px; height: 9px; border-radius: 50%;
+    background: #ff3b30;
+    box-shadow: 0 0 7px 1px rgba(255,59,48,0.8);
+    animation: rec-blink 2.6s ease-in-out infinite;
+  }
+  @keyframes rec-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
+  @media (prefers-reduced-motion: reduce) { .form-meta .rec::after { animation: none; } }
+  .form-meta strong { color: var(--ink); font-weight: 600; }
+  .form-error { color: #ffb4ab !important; }
+
+  .success {
+    display: none; align-items: center; gap: 14px;
+    max-width: 560px; margin: 0 auto;
+    background: var(--glass);
+    border: 1px solid rgba(47,182,115,0.5);
+    border-radius: 18px; padding: 18px 20px;
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: 0 14px 36px rgba(3,7,16,0.45);
+    text-align: left;
+  }
+  .success.show { display: flex; animation: pop 0.4s ease; }
+  @keyframes pop { from{opacity:0;transform:translateY(8px) scale(0.98)} to{opacity:1;transform:none} }
+  .success__check {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; background: var(--accent);
+    color: #fff; font-size: 20px; font-weight: 700;
+  }
+  .success__t { font-weight: 600; color: var(--ink); }
+  .success__s { font-size: 13.5px; color: var(--soft); }
+  .success__s b { color: var(--accent); }
+
+  /* entrance */
+  .reveal { animation: reveal 0.9s cubic-bezier(.2,.7,.2,1) both; }
+  .reveal.d1 { animation-delay: 0.06s; }
+  .reveal.d2 { animation-delay: 0.16s; }
+  .reveal.d3 { animation-delay: 0.28s; }
+  @keyframes reveal { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity:1 !important; transform:none !important; animation:none !important; } }
+
+  @media (max-width: 560px) {
+    .waitlist-row { flex-wrap: wrap; }
+    .form-meta, .success { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+  <main class="hero" data-screen-label="Hero">
+    <div class="hero__band"></div>
+    <div class="hero__scrim"></div>
+    <div class="hero__grain"></div>
+
+    <section class="hero__body">
+      <div class="stage">
+        <h1 class="headline reveal d1" id="headline">Cactus Trading</h1>
+        <p class="tagline reveal d2">Trade <b>smarter.</b> Trade <b>faster.</b></p>
+        <p class="slogan reveal d2">Why should you be held back by <b>speed</b> when institutions aren't?</p>
+
+        <div class="waitlist reveal d3" id="waitlist">
+          <div class="waitlist-row">
+            <div class="brand__chip" aria-label="Cactus logo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22 L12 4.5" />
+                <path d="M12 15 L8.2 15 L8.2 10.6" />
+                <path d="M12 12 L15.8 12 L15.8 8" />
+              </svg>
+            </div>
+            <form class="form" id="waitForm" novalidate>
+              <input type="email" id="email" placeholder="you@desk.com" aria-label="Email address" autocomplete="email" />
+              <button type="submit">Join waitlist</button>
+            </form>
+          </div>
+          <div class="form-meta" id="formMeta">
+            <span class="rec" aria-hidden="true"></span>
+            <span><strong id="waitCount">4,212</strong> traders on the waitlist</span>
+          </div>
+          <div class="success" id="success">
+            <div class="success__check">✓</div>
+            <div>
+              <div class="success__t">You're on the list.</div>
+              <div class="success__s">Position <b id="position">#4,213</b> — we'll email your invite soon.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var form = document.getElementById("waitForm");
+      var email = document.getElementById("email");
+      var meta = document.getElementById("formMeta");
+      var success = document.getElementById("success");
+      var countEl = document.getElementById("waitCount");
+      var posEl = document.getElementById("position");
+      var base = parseInt(localStorage.getItem("cactus_wait") || "4212", 10);
+      countEl.textContent = base.toLocaleString("en-US");
+      function valid(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var v = email.value.trim();
+        if (!valid(v)) {
+          form.classList.remove("shake"); void form.offsetWidth; form.classList.add("shake");
+          meta.innerHTML = '<span class="form-error">Please enter a valid email address.</span>';
+          return;
+        }
+        var next = base + 1;
+        localStorage.setItem("cactus_wait", String(next));
+        posEl.textContent = "#" + next.toLocaleString("en-US");
+        document.querySelector(".waitlist-row").style.display = "none";
+        meta.style.display = "none";
+        success.classList.add("show");
+      });
+      email.addEventListener("input", function () {
+        if (meta.querySelector(".form-error")) {
+          meta.innerHTML = '<span class="rec" aria-hidden="true"></span><span><strong>' + base.toLocaleString("en-US") + '</strong> traders on the waitlist</span>';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
