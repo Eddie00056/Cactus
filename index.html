@@ -201,9 +201,9 @@
   .form button::before {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1.5px;
+    inset: -1px;
+    border-radius: 13px;
+    padding: 2px;
     background: conic-gradient(from var(--beam-angle),
       rgba(47, 182, 115, 0) 0deg,
       rgba(47, 182, 115, 0) 230deg,
@@ -221,6 +221,11 @@
             mask-composite: exclude;
     pointer-events: none;
     animation: beam-spin 5.5s linear infinite;
+  }
+  /* Pause the spin on hover/focus and resume from where it left off. */
+  .form button:hover::before,
+  .form button:focus-visible::before {
+    animation-play-state: paused;
   }
   @keyframes beam-spin { to { --beam-angle: 360deg; } }
   @media (prefers-reduced-motion: reduce) {
