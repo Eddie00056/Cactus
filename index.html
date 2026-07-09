@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cactus Trading — Trade smarter. Trade faster.</title>
 <style>
   :root {
@@ -90,41 +89,21 @@
   }
   .slogan b { color: var(--ink); font-weight: 600; }
 
-  /* ---------- waitlist (glass) ---------- */
+  /* ---------- CTA (join) ---------- */
   .waitlist { max-width: 600px; margin: 0 auto; }
-  .waitlist-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
-  .form {
-    flex: 1; min-width: 0; display: flex; gap: 10px;
-    background: none; border: none; border-radius: 0; padding: 0;
-    box-shadow: none;
-  }
-  .form.shake { animation: shake 0.4s; }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }
-  .form input {
-    flex: 1; min-width: 0;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.16);
-    outline: none; border-radius: 14px; color: var(--ink);
-    font-family: inherit; font-size: 16px; letter-spacing: -0.01em; padding: 16px 18px;
-    -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 22px rgba(0,0,0,0.4);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .form input:focus { border-color: rgba(255,255,255,0.34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 0 0 3px rgba(255,255,255,0.12), 0 8px 22px rgba(0,0,0,0.4); }
-  .form input::placeholder { color: var(--mute); }
-  .form button {
-    position: relative; flex-shrink: 0;
+  .cta-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
     background: linear-gradient(176deg,
       rgba(244,246,245,0.55) 0%, rgba(217,223,219,0.5) 24%, rgba(169,179,172,0.45) 46%,
       rgba(131,141,133,0.45) 52%, rgba(196,204,198,0.5) 62%, rgba(238,241,239,0.55) 78%, rgba(183,192,186,0.5) 100%);
     color: rgba(28,35,30,0.98);
-    border: 1px solid rgba(255,255,255,0.22); border-radius: 14px;
-    font-family: inherit; font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
-    padding: 0 26px; cursor: pointer; white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.22); border-radius: 999px;
+    font-family: inherit; font-weight: 600; font-size: 16px; letter-spacing: -0.01em;
+    padding: 17px 34px; cursor: pointer; white-space: nowrap;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35);
-    transition: border-color 0.28s ease, box-shadow 0.32s ease, filter 0.28s ease;
+    transition: border-color 0.28s ease, box-shadow 0.32s ease, filter 0.28s ease, transform 0.2s ease;
   }
-  .form button:hover, .form button:focus-visible {
+  .cta-btn:hover, .cta-btn:focus-visible {
     outline: none; filter: brightness(1.06); border-color: rgba(255,255,255,0.36);
     box-shadow:
       inset 0 0 8px rgba(255,255,255,0.2),
@@ -133,27 +112,36 @@
       0 0 20px 3px rgba(200,214,204,0.18),
       0 8px 22px rgba(0,0,0,0.35);
   }
-  .form button:active { transform: scale(0.98); }
-  .form-msg {
-    margin-top: 16px; min-height: 20px; text-align: center;
-    font-size: 13.5px; color: var(--soft); letter-spacing: -0.005em;
-    text-shadow: 0 1px 14px rgba(0,0,0,0.8);
+  .cta-btn:active { transform: scale(0.97); }
+  .cta-icon {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px 1px rgba(47,182,115,0.55);
   }
-  .form-msg.error { color: #ffb4ab; }
-  .success {
-    display: none; align-items: center; gap: 14px;
-    max-width: 560px; margin: 0 auto;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(47,182,115,0.5); border-radius: 18px; padding: 18px 20px;
-    -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3);
-    box-shadow: 0 14px 36px rgba(0,0,0,0.55); text-align: left;
+
+  /* ---------- "sucked into the circle" exit transition ---------- */
+  body.warping .stage { will-change: transform, opacity, filter; }
+  body.warping .scrim { transition: opacity 0.7s ease; opacity: 0; }
+  .suck-flash {
+    position: fixed; inset: 0; z-index: 10; pointer-events: none; display: block;
+    mix-blend-mode: screen;
   }
-  .success.show { display: flex; animation: pop 0.4s ease; }
-  @keyframes pop { from{opacity:0;transform:translateY(8px) scale(0.98)} to{opacity:1;transform:none} }
-  .success__check { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 20px; font-weight: 700; }
-  .success__t { font-weight: 600; color: var(--ink); }
-  .success__s { font-size: 13.5px; color: var(--soft); }
-  .success__s b { color: var(--accent); }
+
+  /* ---------- join screen (same persistent canvas, second in-page state) ---------- */
+  .join-screen {
+    position: fixed; inset: 0; z-index: 4;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 32px; opacity: 0; pointer-events: none;
+  }
+  .join-screen.show { pointer-events: auto; }
+  .join-screen h2 {
+    font-family: var(--font-display); font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    font-size: clamp(28px, 4vw, 44px); color: var(--ink);
+    margin-bottom: 12px; text-shadow: 0 2px 40px rgba(0,0,0,0.85);
+  }
+  .join-screen p { color: var(--soft); font-size: 16px; text-shadow: 0 1px 20px rgba(0,0,0,0.85); }
 
   /* hero content entrance — base state is VISIBLE; animate FROM hidden */
   .stage > * { opacity: 1; }
@@ -161,7 +149,7 @@
   body.revealed .stage > *:nth-child(1) { animation-delay: 0.05s; }
   body.revealed .stage > *:nth-child(2) { animation-delay: 0.16s; }
   body.revealed .stage > *:nth-child(3) { animation-delay: 0.28s; }
-  @keyframes reveal { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .stage > * { opacity: 1 !important; transform: none !important; animation: none !important; } }
 </style>
 </head>
@@ -169,31 +157,30 @@
   <!-- shader background -->
   <canvas id="bg" aria-hidden="true"></canvas>
   <div class="scrim" aria-hidden="true"></div>
+  <canvas class="suck-flash" id="suckFlash" aria-hidden="true"></canvas>
 
   <!-- hero -->
   <main class="hero" data-screen-label="Hero">
     <section class="stage">
-      <h1 class="headline"><span id="headline">Cactus Trading</span><span class="cactus-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 L12 4.5" /><path d="M12 15 L8.2 15 L8.2 10.6" /><path d="M12 12 L15.8 12 L15.8 8" /></svg></span></h1>
+      <h1 class="headline"><span id="headline">Cactus Trading</span><span class="cactus-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 L12 4.5"></path><path d="M12 15 L8.2 15 L8.2 10.6"></path><path d="M12 12 L15.8 12 L15.8 8"></path></svg></span></h1>
       <p class="slogan">Why should you be held back by speed when the institutions aren't?</p>
 
       <div class="waitlist" id="waitlist">
-        <div class="waitlist-row">
-          <form class="form" id="waitForm" novalidate>
-            <input type="email" id="email" placeholder="you@desk.com" aria-label="Email address" autocomplete="email" />
-            <button type="submit">Join waitlist</button>
-          </form>
-        </div>
-        <p class="form-msg" id="formMsg" aria-live="polite"></p>
-        <div class="success" id="success">
-          <div class="success__check">✓</div>
-          <div>
-            <div class="success__t">You're on the list.</div>
-            <div class="success__s">Position <b id="position">#4,213</b> — we'll email your invite soon.</div>
-          </div>
-        </div>
+        <button type="button" class="cta-btn" id="joinBtn">
+          <span class="cta-icon" aria-hidden="true"></span>
+          <span>Join our traders</span>
+        </button>
       </div>
     </section>
   </main>
+
+  <!-- join screen (revealed in-page after the CTA transition; same canvas, no reload) -->
+  <section class="join-screen" id="joinScreen" data-screen-label="Join">
+    <div>
+      <h2>You're in.</h2>
+      <p>This screen is a placeholder — we'll design the real one next.</p>
+    </div>
+  </section>
 
   <script>
     /* ===========================================================
@@ -274,14 +261,21 @@
         }, { passive: true });
       }
 
-      var nT = Math.random() * 1000, grainT = 0, driftT = 0;
+      var STORE_KEY = "cactusBgDrift";
+      var seed = (function () {
+        try { return JSON.parse(sessionStorage.getItem(STORE_KEY) || "null"); } catch (e) { return null; }
+      })();
+      var nT = Math.random() * 1000, grainT = 0;
+      var driftT = (seed && isFinite(seed.driftT)) ? seed.driftT : 0;
+      var cpx = (seed && isFinite(seed.cpxN)) ? seed.cpxN : 0.5;
+      var cpy = (seed && isFinite(seed.cpyN)) ? seed.cpyN : 0.5;
 
       function frame() {
         gl.viewport(0, 0, W, H);
 
         nT += PARAMS.nSpeed * 0.003; if (nT > 1000) nT -= 1000;
         grainT = (grainT + 1) % 100;
-        driftT += 0.007;   // dedicated drift clock, starts at 0 (circle begins centred)
+        driftT += 0.007;   // dedicated drift clock, starts at 0 (circle begins centred) or resumes from a prior page
 
         // slow autonomous wander; sines are 0 at t=0 so it starts dead-centre,
         // and the amplitude ramps in over the first few seconds.
@@ -291,6 +285,9 @@
 
         cpx += (driftX - cpx) * 0.03;
         cpy += ((1 - driftY) - cpy) * 0.03;
+        window.__bgCenter = { x: cpx, y: cpy };   // normalized, top-left origin — for UI transitions
+        window.__bgRadius = PARAMS.cR;                // CSS px — for UI transitions
+        try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ driftT: driftT, cpxN: cpx, cpyN: cpy })); } catch (e) {}
 
         var scaleFactor = Math.min(W, H) / baseDim;
         gl.uniform2f(u.center, cpx * W, (1 - cpy) * H);
@@ -325,36 +322,102 @@
   </script>
 
   <script>
-    /* ---------- waitlist form ---------- */
+    /* ---------- "Join our traders" -> the existing hole swallows the screen -> reveal join screen ---------- */
     (function () {
-      var form = document.getElementById("waitForm");
-      var email = document.getElementById("email");
-      var msg = document.getElementById("formMsg");
-      var success = document.getElementById("success");
-      var posEl = document.getElementById("position");
-      var base = parseInt(localStorage.getItem("cactus_wait") || "4212", 10);
-      function valid(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var v = email.value.trim();
-        if (!valid(v)) {
-          form.classList.remove("shake"); void form.offsetWidth; form.classList.add("shake");
-          msg.textContent = "Please enter a valid email address.";
-          msg.classList.add("error");
+      var btn = document.getElementById("joinBtn");
+      var stage = document.querySelector(".stage");
+      var scrim = document.querySelector(".scrim");
+      var flash = document.getElementById("suckFlash");
+      var flashCtx = flash.getContext("2d");
+      var joinScreen = document.getElementById("joinScreen");
+      if (!btn || !stage) return;
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+      function smooth(a, b, x) { x = clamp01((x - a) / (b - a)); return x * x * (3 - 2 * x); }
+
+      function resizeFlash() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        flash.width = window.innerWidth * dpr; flash.height = window.innerHeight * dpr;
+        flash.style.width = window.innerWidth + "px"; flash.style.height = window.innerHeight + "px";
+        flashCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener("resize", resizeFlash);
+      resizeFlash();
+
+      function run() {
+        if (document.body.classList.contains("warping")) return;
+        document.body.classList.add("warping");
+
+        var c = window.__bgCenter || { x: 0.5, y: 0.5 };
+        var r0 = window.__bgRadius || 150;
+        var cx = c.x * window.innerWidth, cy = c.y * window.innerHeight;
+        var corners = [[0,0],[window.innerWidth,0],[0,window.innerHeight],[window.innerWidth,window.innerHeight]];
+        var maxR = 0;
+        for (var i = 0; i < corners.length; i++) {
+          maxR = Math.max(maxR, Math.hypot(corners[i][0] - cx, corners[i][1] - cy));
+        }
+        maxR *= 1.08;   // small margin so the feathered edge fully clears the corners
+        var swapped = false;
+
+        if (reduce) {
+          stage.style.transition = "opacity 0.3s ease";
+          stage.style.opacity = "0";
+          setTimeout(function () {
+            stage.style.display = "none";
+            joinScreen.classList.add("show");
+            joinScreen.style.opacity = "1";
+          }, 300);
           return;
         }
-        var next = base + 1;
-        localStorage.setItem("cactus_wait", String(next));
-        posEl.textContent = "#" + next.toLocaleString("en-US");
-        document.querySelector(".waitlist-row").style.display = "none";
-        msg.style.display = "none";
-        success.classList.add("show");
-      });
-      email.addEventListener("input", function () {
-        if (msg.classList.contains("error")) { msg.textContent = ""; msg.classList.remove("error"); }
-      });
+
+        var DUR = 1900;
+        var t0 = performance.now();
+        function frame(now) {
+          var p = Math.min(1, (now - t0) / DUR);
+
+          // hero: plain fade in place (no travel/scale)
+          var heroFade = smooth(0, 0.32, p);
+          stage.style.opacity = String(1 - heroFade);
+          stage.style.filter = "blur(" + (heroFade * 4).toFixed(2) + "px)";
+          scrim.style.opacity = String(1 - smooth(0, 0.5, p));
+
+          // the EXISTING hole grows outward from its own current size/position
+          // to swallow the whole screen — no separate/disconnected glow shape.
+          var grow = smooth(0.18, 0.82, p);
+          var r = r0 + (maxR - r0) * grow;
+          var coreIn = smooth(0.1, 0.42, p);
+          var coreOut = smooth(0.86, 1.0, p);
+          var alpha = coreIn * (1 - coreOut);
+          var feather = Math.max(24, r * 0.22);
+
+          flashCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          if (alpha > 0.003) {
+            var peak = alpha * 0.85;   // stay translucent — let the shader's own texture read through
+            var g = flashCtx.createRadialGradient(cx, cy, Math.max(0, r - feather), cx, cy, r);
+            g.addColorStop(0, "rgba(207,226,206," + peak.toFixed(3) + ")");
+            g.addColorStop(0.65, "rgba(207,226,206," + (peak * 0.7).toFixed(3) + ")");
+            g.addColorStop(1, "rgba(207,226,206,0)");
+            flashCtx.fillStyle = g;
+            flashCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+          }
+
+          // swap to the join screen once the disk has swallowed the view
+          if (!swapped && p >= 0.66) {
+            swapped = true;
+            stage.style.display = "none";
+            joinScreen.classList.add("show");
+            joinScreen.style.opacity = "1";
+          }
+
+          if (p < 1) { requestAnimationFrame(frame); }
+          else { flashCtx.clearRect(0, 0, window.innerWidth, window.innerHeight); }
+        }
+        requestAnimationFrame(frame);
+      }
+
+      btn.addEventListener("click", run);
     })();
   </script>
 
-</body>
-</html>
+  </body></html>
