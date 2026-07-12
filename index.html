@@ -551,22 +551,42 @@
   </script>
 
   <script>
-    /* ---------- ask bar (placeholder until the Claude endpoint is wired) ---------- */
+    /* ---------- ask bar → Supabase Edge Function (Claude proxy) ---------- */
     (function () {
+      var ENDPOINT = "https://gpcbvuwfpxkjtrcabzqw.supabase.co/functions/v1/ask";
       var bar = document.getElementById("askBar");
       var input = document.getElementById("askInput");
       var note = document.getElementById("promptNote");
+      var send = bar ? bar.querySelector(".prompt-send") : null;
       if (!bar || !input || !note) return;
+      var busy = false;
       bar.addEventListener("submit", function (e) {
         e.preventDefault();
         var q = input.value.trim();
-        if (!q) return;
-        note.innerHTML = "<b>Cactus AI is opening soon.</b> You're early — join the waitlist and we'll switch this on for you first.";
-        note.classList.add("show");
+        if (!q || busy) return;
+        busy = true;
+        if (send) send.disabled = true;
         input.value = "";
-      });
-      input.addEventListener("input", function () {
-        if (note.classList.contains("show")) note.classList.remove("show");
+        note.textContent = "Thinking…";
+        note.classList.add("show");
+        fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q })
+        })
+          .then(function (r) { return r.json().catch(function () { return {}; }); })
+          .then(function (data) {
+            note.textContent = (data && data.answer) ? data.answer
+              : (data && data.error) ? data.error
+              : "Something went wrong. Please try again.";
+          })
+          .catch(function () {
+            note.textContent = "Couldn't reach the assistant. Please try again in a moment.";
+          })
+          .then(function () {
+            busy = false;
+            if (send) send.disabled = false;
+          });
       });
     })();
   </script>
