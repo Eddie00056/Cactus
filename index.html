@@ -185,11 +185,11 @@
     width: min(680px, calc(100% - 32px));
     z-index: 40;
     display: flex; flex-direction: column; gap: 10px;
-    animation: promptIn 0.9s cubic-bezier(.2,.7,.2,1) 0.4s both;
+    opacity: 0; pointer-events: none;          /* hidden on the hero */
+    transition: opacity 0.6s ease;
   }
-  @keyframes promptIn { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
-  /* hide the ask bar once the hero warps into the join screen */
-  body.warping .prompt-bar { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+  /* show the ask bar only on the second (join) screen */
+  .join-screen.show ~ .prompt-bar { opacity: 1; pointer-events: auto; }
 
   .prompt-note {
     display: none;
