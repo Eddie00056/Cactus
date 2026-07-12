@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cactus Trading — Trade smarter. Trade faster.</title>
 <style>
   :root {
-    --accent:       #2fb673;
+    --accent:       #5fa37e;
     --ink:          #f3f6fc;
     --soft:         rgba(243,246,252,0.74);
     --mute:         rgba(243,246,252,0.5);
@@ -78,7 +79,7 @@
     margin-left: 0.16em; vertical-align: middle; position: relative; top: -0.05em;
     color: var(--accent); -webkit-text-fill-color: var(--accent);
   }
-  .headline .cactus-mark svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 18px rgba(47,182,115,0.5)); }
+  .headline .cactus-mark svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 18px rgba(95,163,126,0.5)); }
   .slogan {
     font-size: clamp(15px, 1.65vw, 20px);
     font-weight: 400; line-height: 1.45;
@@ -116,8 +117,8 @@
   .cta-icon {
     display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
     width: 13px; height: 13px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 10px 1px rgba(47,182,115,0.55);
+    background: linear-gradient(176deg, #eafaf0 0%, #b9dcc4 40%, #5f9e78 60%, #b9dcc4 78%, #eafaf0 100%);
+    box-shadow: 0 0 8px 1px rgba(90,180,130,0.55);
   }
 
   /* ---------- "sucked into the circle" exit transition ---------- */
@@ -131,10 +132,13 @@
   /* ---------- join screen (same persistent canvas, second in-page state) ---------- */
   .join-screen {
     position: fixed; inset: 0; z-index: 4;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    padding: 32px; opacity: 0; pointer-events: none;
+    display: flex; align-items: stretch; justify-content: flex-start;
+    opacity: 0; pointer-events: none;
   }
   .join-screen.show { pointer-events: auto; }
+  .join-content {
+    flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 32px;
+  }
   .join-screen h2 {
     font-family: var(--font-display); font-weight: var(--display-weight);
     letter-spacing: var(--display-tracking);
@@ -142,6 +146,28 @@
     margin-bottom: 12px; text-shadow: 0 2px 40px rgba(0,0,0,0.85);
   }
   .join-screen p { color: var(--soft); font-size: 16px; text-shadow: 0 1px 20px rgba(0,0,0,0.85); }
+
+  /* ---------- left panel: clean, minimal sidebar (Perplexity-like), sized to its icon row ---------- */
+  .join-panel {
+    position: relative; flex: 0 0 auto; height: 100%;
+    display: flex; flex-direction: column; align-items: flex-start;
+    padding: 22px 18px 0;
+    border-right: 1px solid rgba(230,238,232,0.12);
+  }
+  .join-panel { transition: padding 0.25s ease; }
+  .panel-top { display: flex; align-items: center; gap: 12px; transition: gap 0.25s ease; }
+  .join-panel .panel-icon { width: 22px; height: 30px; color: var(--soft); flex-shrink: 0; transition: width 0.25s ease, opacity 0.2s ease; overflow: hidden; }
+  .join-panel .panel-icon svg { width: 100%; height: 100%; display: block; }
+  .join-panel .panel-collapse { width: 19px; height: 19px; color: var(--soft); flex-shrink: 0; opacity: 0.7; cursor: pointer; pointer-events: auto; transition: opacity 0.2s ease; position: relative; }
+  .join-panel .panel-collapse:hover { opacity: 1; }
+  .join-panel .panel-collapse svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .join-panel .panel-collapse svg.ic-cactus { display: none; }
+  .join-panel.collapsed .panel-top { gap: 0; }
+  .join-panel.collapsed .panel-icon { width: 0; overflow: hidden; }
+  .join-panel.collapsed .panel-collapse svg.ic-collapse { display: none; }
+  .join-panel.collapsed .panel-collapse svg.ic-cactus { display: block; }
+  .join-panel.collapsed .panel-collapse:hover svg.ic-collapse { display: block; }
+  .join-panel.collapsed .panel-collapse:hover svg.ic-cactus { display: none; }
 
   /* hero content entrance — base state is VISIBLE; animate FROM hidden */
   .stage > * { opacity: 1; }
@@ -162,7 +188,7 @@
   <!-- hero -->
   <main class="hero" data-screen-label="Hero">
     <section class="stage">
-      <h1 class="headline"><span id="headline">Cactus Trading</span><span class="cactus-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 L12 4.5"></path><path d="M12 15 L8.2 15 L8.2 10.6"></path><path d="M12 12 L15.8 12 L15.8 8"></path></svg></span></h1>
+      <h1 class="headline"><span id="headline">Cactus Trading</span><span class="cactus-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 L12 4.5" /><path d="M12 15 L8.2 15 L8.2 10.6" /><path d="M12 12 L15.8 12 L15.8 8" /></svg></span></h1>
       <p class="slogan">Why should you be held back by speed when the institutions aren't?</p>
 
       <div class="waitlist" id="waitlist">
@@ -176,9 +202,33 @@
 
   <!-- join screen (revealed in-page after the CTA transition; same canvas, no reload) -->
   <section class="join-screen" id="joinScreen" data-screen-label="Join">
-    <div>
-      <h2>You're in.</h2>
-      <p>This screen is a placeholder — we'll design the real one next.</p>
+    <aside class="join-panel" id="joinPanel">
+      <div class="panel-top">
+        <div class="panel-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1.4 2.2">
+            <path d="M12 22 L12 4.5" />
+            <path d="M12 15 L8.2 15 L8.2 10.6" />
+            <path d="M12 12 L15.8 12 L15.8 8" />
+          </svg>
+        </div>
+        <div class="panel-collapse">
+          <svg class="ic-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.5" y="5" width="17" height="14" rx="3" />
+            <line x1="9.5" y1="5" x2="9.5" y2="19" />
+          </svg>
+          <svg class="ic-cactus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1.4 2.2">
+            <path d="M12 22 L12 4.5" />
+            <path d="M12 15 L8.2 15 L8.2 10.6" />
+            <path d="M12 12 L15.8 12 L15.8 8" />
+          </svg>
+        </div>
+      </div>
+    </aside>
+    <div class="join-content">
+      <div>
+        <h2>You're in.</h2>
+        <p>This screen is a placeholder — we'll design the real one next.</p>
+      </div>
     </div>
   </section>
 
@@ -420,4 +470,17 @@
     })();
   </script>
 
-  </body></html>
+  <script>
+    /* ---------- join-screen sidebar collapse toggle ---------- */
+    (function () {
+      var toggle = document.querySelector(".panel-collapse");
+      var panel = document.getElementById("joinPanel");
+      if (!toggle || !panel) return;
+      toggle.addEventListener("click", function () {
+        panel.classList.toggle("collapsed");
+      });
+    })();
+  </script>
+
+  </body>
+</html>
