@@ -140,22 +140,28 @@
      drift — replaces the WebGL circles on this screen (opaque, so they're hidden) */
   .join-bg {
     position: absolute; inset: 0; z-index: 0; overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 0%, #0c1512 0%, #070b12 55%, #05070c 100%);
+    background: radial-gradient(120% 90% at 50% 0%, #16231d 0%, #0e1620 55%, #0a0e15 100%);
   }
   .join-bg::before {
     content: ""; position: absolute; inset: -35%;
     background:
-      radial-gradient(closest-side at 30% 32%, rgba(95,163,126,0.30), transparent 100%),
-      radial-gradient(closest-side at 72% 62%, rgba(200,214,206,0.22), transparent 100%),
-      radial-gradient(closest-side at 58% 22%, rgba(126,146,138,0.18), transparent 100%),
-      radial-gradient(closest-side at 40% 78%, rgba(95,163,126,0.16), transparent 100%);
+      radial-gradient(closest-side at 30% 32%, rgba(95,163,126,0.42), transparent 100%),
+      radial-gradient(closest-side at 72% 62%, rgba(200,214,206,0.30), transparent 100%),
+      radial-gradient(closest-side at 58% 22%, rgba(126,146,138,0.24), transparent 100%),
+      radial-gradient(closest-side at 40% 78%, rgba(95,163,126,0.22), transparent 100%);
     filter: blur(60px);
-    animation: joinDrift 32s ease-in-out infinite alternate;
-    will-change: transform;
+    animation: joinDrift 32s ease-in-out infinite alternate,
+               joinPulse 4.8s ease-in-out infinite;
+    will-change: transform, opacity;
   }
   @keyframes joinDrift {
     from { transform: translate3d(-2.5%, -2%, 0) scale(1.06) rotate(0deg); }
     to   { transform: translate3d(2.5%, 2%, 0) scale(1.13) rotate(5deg); }
+  }
+  /* faint "heartbeat" — a gentle brightness breathing on top of the drift */
+  @keyframes joinPulse {
+    0%, 100% { opacity: 0.84; }
+    50%      { opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) { .join-bg::before { animation: none; } }
   .join-content {
