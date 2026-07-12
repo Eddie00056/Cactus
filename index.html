@@ -554,6 +554,8 @@
     /* ---------- ask bar → Supabase Edge Function (Claude proxy) ---------- */
     (function () {
       var ENDPOINT = "https://gpcbvuwfpxkjtrcabzqw.supabase.co/functions/v1/ask";
+      // Supabase publishable key — safe to expose (it's the browser/anon credential).
+      var SUPABASE_KEY = "sb_publishable_wkgmUjXRt2nxRDARGTAjug_RPXZsoj1";
       var bar = document.getElementById("askBar");
       var input = document.getElementById("askInput");
       var note = document.getElementById("promptNote");
@@ -569,16 +571,21 @@
         input.value = "";
         note.textContent = "Thinking…";
         note.classList.add("show");
+        var status = 0;
         fetch(ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": "Bearer " + SUPABASE_KEY
+          },
           body: JSON.stringify({ question: q })
         })
-          .then(function (r) { return r.json().catch(function () { return {}; }); })
+          .then(function (r) { status = r.status; return r.json().catch(function () { return {}; }); })
           .then(function (data) {
             note.textContent = (data && data.answer) ? data.answer
-              : (data && data.error) ? data.error
-              : "Something went wrong. Please try again.";
+              : (data && (data.error || data.message)) ? (data.error || data.message)
+              : ("Something went wrong (" + status + "). Please try again.");
           })
           .catch(function () {
             note.textContent = "Couldn't reach the assistant. Please try again in a moment.";
