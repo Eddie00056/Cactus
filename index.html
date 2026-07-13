@@ -274,25 +274,37 @@
   /* show only on the second (join) screen */
   .join-screen.show ~ .markets { opacity: 1; pointer-events: auto; }
   .mkt-tile {
-    flex: 1 1 140px; min-width: 122px; max-width: 200px;
-    display: flex; flex-direction: column; gap: 4px;
+    flex: 1 1 150px; min-width: 138px; max-width: 210px;
+    display: flex; flex-direction: column; gap: 5px;
     padding: 11px 13px; border-radius: 14px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.12);
     -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 26px rgba(0,0,0,0.38);
   }
-  .mkt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .mkt-label { color: var(--soft); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
-  .mkt-chg { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* symbol · price · change% — all on one line */
+  .mkt-head { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+  .mkt-label { color: var(--soft); font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .mkt-price { color: var(--ink); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mkt-chg { margin-left: auto; font-size: 11.5px; font-variant-numeric: tabular-nums; }
   .mkt-chg.up { color: #4fd18b; }
   .mkt-chg.down { color: #ff6b6b; }
-  .mkt-price { color: var(--ink); font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .mkt-spark { width: 100%; height: 34px; display: block; overflow: visible; margin-top: 3px; }
-  .spark-prev { stroke: #6ea8ff; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.8; }
+  .spark-wrap { position: relative; margin-top: 2px; }
+  .mkt-spark { width: 100%; height: 34px; display: block; overflow: visible; }
+  .spark-prev { stroke: #6ea8ff; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.85; stroke-dasharray: 2 3; }
   .spark-line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
   .spark-line.up { stroke: #4fd18b; }
   .spark-line.down { stroke: #ff6b6b; }
+  /* pulsing dot at the latest point */
+  .spark-dot { position: absolute; right: 1px; width: 6px; height: 6px; border-radius: 50%; transform: translate(50%, -50%); }
+  .spark-dot.up { background: #4fd18b; }
+  .spark-dot.down { background: #ff6b6b; }
+  .spark-dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit;
+    animation: sparkPulse 1.8s ease-out infinite;
+  }
+  @keyframes sparkPulse { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(3.4); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .spark-dot::after { animation: none; } }
   .markets-empty { color: var(--mute); font-size: 12.5px; padding: 12px; }
 </style>
 </head>
@@ -686,6 +698,8 @@
       // mini sparkline: price line (green/red) + a thin bluish previous-close line
       function buildSpark(series, prevClose, up) {
         var W = 100, H = 34;
+        var wrap = document.createElement("div");
+        wrap.className = "spark-wrap";
         var svg = document.createElementNS(SVG, "svg");
         svg.setAttribute("class", "mkt-spark");
         svg.setAttribute("viewBox", "0 0 " + W + " " + H);
@@ -697,6 +711,7 @@
         min -= pad; max += pad;
         var span = (max - min) || 1;
         function y(v) { return (H - (v - min) / span * H); }
+        // dotted previous-close reference line
         if (isFinite(prevClose)) {
           var ln = document.createElementNS(SVG, "line");
           ln.setAttribute("x1", "0"); ln.setAttribute("x2", String(W));
@@ -713,7 +728,15 @@
           pl.setAttribute("class", "spark-line " + (up ? "up" : "down"));
           svg.appendChild(pl);
         }
-        return svg;
+        wrap.appendChild(svg);
+        // pulsing dot at the latest point (HTML element so it stays round)
+        if (n >= 1) {
+          var dot = document.createElement("span");
+          dot.className = "spark-dot " + (up ? "up" : "down");
+          dot.style.top = (y(series[n - 1]) / H * 100).toFixed(1) + "%";
+          wrap.appendChild(dot);
+        }
+        return wrap;
       }
 
       function tile(it) {
@@ -722,10 +745,10 @@
         el.className = "mkt-tile";
         var head = document.createElement("div"); head.className = "mkt-head";
         var lbl = document.createElement("span"); lbl.className = "mkt-label"; lbl.textContent = it.label;
+        var pr = document.createElement("span"); pr.className = "mkt-price"; pr.textContent = fmtPrice(it.price, it.unit);
         var ch = document.createElement("span"); ch.className = "mkt-chg " + (up ? "up" : "down"); ch.textContent = fmtChg(it.changePct);
-        head.appendChild(lbl); head.appendChild(ch);
-        var pr = document.createElement("div"); pr.className = "mkt-price"; pr.textContent = fmtPrice(it.price, it.unit);
-        el.appendChild(head); el.appendChild(pr);
+        head.appendChild(lbl); head.appendChild(pr); head.appendChild(ch);
+        el.appendChild(head);
         if (it.series && it.series.length > 1) el.appendChild(buildSpark(it.series, it.prevClose, up));
         return el;
       }

@@ -1,7 +1,7 @@
 // Cactus "markets" endpoint — Supabase Edge Function (Deno)
 // -----------------------------------------------------------
-// Returns delayed quotes + an intraday sparkline series + previous close for
-// the market cards: S&P 500, Nasdaq, BTC, Gold/USD, 10Y. Free/keyless
+// Returns delayed quotes + a ~2-day intraday sparkline series + previous close
+// for the market cards: S&P 500, Nasdaq, BTC, Gold/USD, 10Y. Free/keyless
 // (Yahoo Finance chart JSON). Cached in-memory ~60s.
 //
 // Site calls:  GET  ->  { items: [ {key,label,unit,price,prevClose,changePct,series[]}, ... ],
@@ -26,6 +26,7 @@ const INSTRUMENTS: Array<
   { key: "us10y", label: "10Y",      yahoo: "^TNX",    unit: "%", isYield: true },
 ];
 
+const TWO_DAYS = 2 * 24 * 3600; // seconds
 const TTL_MS = 60_000;
 let cache: { at: number; body: string } | null = null;
 
@@ -40,34 +41,44 @@ function corsHeaders(origin: string): Record<string, string> {
   };
 }
 
-async function yahoo(symbol: string, interval: string, range: string) {
+// fetch a chart and return meta + parallel {t, c} points (nulls dropped)
+async function yahoo(symbol: string, qs: string) {
   const url =
     "https://query1.finance.yahoo.com/v8/finance/chart/" +
-    encodeURIComponent(symbol) + "?interval=" + interval + "&range=" + range;
+    encodeURIComponent(symbol) + "?" + qs;
   const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json" } });
   if (!r.ok) return null;
   const j = await r.json();
   const res = j?.chart?.result?.[0];
   if (!res) return null;
+  const ts: number[] = res.timestamp ?? [];
   const closes: unknown[] = res.indicators?.quote?.[0]?.close ?? [];
-  const series = closes.filter((x): x is number => typeof x === "number" && isFinite(x));
-  return { meta: res.meta, series };
+  const points: Array<{ t: number; c: number }> = [];
+  for (let i = 0; i < ts.length; i++) {
+    const c = closes[i];
+    if (typeof c === "number" && isFinite(c)) points.push({ t: ts[i], c });
+  }
+  return { meta: res.meta, points };
 }
 
 async function quoteWithSpark(inst: typeof INSTRUMENTS[number]) {
   try {
-    let data = await yahoo(inst.yahoo, "5m", "1d");
-    if (!data || data.series.length < 2) {
-      const alt = await yahoo(inst.yahoo, "30m", "5d");
-      if (alt && alt.series.length >= 2) data = alt;
+    // 5 days of 15m bars, then slice to the most recent ~2 days (robust over weekends)
+    let data = await yahoo(inst.yahoo, "interval=15m&range=5d");
+    if (!data || data.points.length < 2) {
+      const alt = await yahoo(inst.yahoo, "interval=30m&range=1mo");
+      if (alt && alt.points.length >= 2) data = alt;
     }
-    if (!data) return null;
+    if (!data || !data.points.length) return null;
 
     const meta = data.meta;
+    const lastT = data.points[data.points.length - 1].t;
+    let series = data.points.filter((p) => p.t >= lastT - TWO_DAYS).map((p) => p.c);
+    if (series.length < 2) series = data.points.map((p) => p.c);
+
     let price = Number(meta.regularMarketPrice);
-    let prev = Number(meta.chartPreviousClose ?? meta.previousClose);
-    let series = data.series.slice();
     if (!isFinite(price) && series.length) price = series[series.length - 1];
+    let prev = Number(meta.chartPreviousClose ?? meta.previousClose);
     if (!isFinite(price) || !isFinite(prev) || prev === 0) return null;
 
     // ^TNX sometimes comes back as yield x10 (42.3 == 4.23%); normalize everywhere.
