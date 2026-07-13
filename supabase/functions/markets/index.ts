@@ -73,9 +73,29 @@ async function quoteWithSpark(inst: typeof INSTRUMENTS[number]) {
 
     const meta = data.meta;
     const lastT = data.points[data.points.length - 1].t;
-    let series = data.points.filter((p) => p.t >= lastT - TWO_DAYS).map((p) => p.c);
-    if (series.length < 2) series = data.points.map((p) => p.c);
+    let pts = data.points.filter((p) => p.t >= lastT - TWO_DAYS);
+    if (pts.length < 2) pts = data.points;
 
+    // downsample to <= 80 points (keep {t,c} so we can find the day boundary)
+    if (pts.length > 80) {
+      const step = Math.ceil(pts.length / 80);
+      const ds: typeof pts = [];
+      for (let i = 0; i < pts.length; i += step) ds.push(pts[i]);
+      if (ds[ds.length - 1] !== pts[pts.length - 1]) ds.push(pts[pts.length - 1]);
+      pts = ds;
+    }
+
+    // indices where the New York calendar day changes (for the day-cutoff line)
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+    });
+    const dayOf = (t: number) => fmt.format(new Date(t * 1000));
+    const breaks: number[] = [];
+    for (let i = 1; i < pts.length; i++) {
+      if (dayOf(pts[i].t) !== dayOf(pts[i - 1].t)) breaks.push(i);
+    }
+
+    let series = pts.map((p) => p.c);
     let price = Number(meta.regularMarketPrice);
     if (!isFinite(price) && series.length) price = series[series.length - 1];
     let prev = Number(meta.chartPreviousClose ?? meta.previousClose);
@@ -86,21 +106,12 @@ async function quoteWithSpark(inst: typeof INSTRUMENTS[number]) {
       const fix = (v: number) => (v > 20 ? v / 10 : v);
       price = fix(price); prev = fix(prev); series = series.map(fix);
     }
-
-    // downsample to <= 80 points and round to keep the payload small
-    if (series.length > 80) {
-      const step = Math.ceil(series.length / 80);
-      const ds: number[] = [];
-      for (let i = 0; i < series.length; i += step) ds.push(series[i]);
-      if (ds[ds.length - 1] !== series[series.length - 1]) ds.push(series[series.length - 1]);
-      series = ds;
-    }
     series = series.map((v) => Math.round(v * 100) / 100);
 
     const changePct = ((price - prev) / prev) * 100;
     return {
       key: inst.key, label: inst.label, unit: inst.unit ?? "",
-      price, prevClose: prev, changePct, series,
+      price, prevClose: prev, changePct, series, breaks,
     };
   } catch {
     return null;

@@ -292,6 +292,7 @@
   .spark-wrap { position: relative; margin-top: 2px; }
   .mkt-spark { width: 100%; height: 34px; display: block; overflow: visible; }
   .spark-prev { stroke: #6ea8ff; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.85; stroke-dasharray: 2 3; }
+  .spark-daybreak { stroke: rgba(205,212,218,0.5); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 2 3; }
   .spark-line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
   .spark-line.up { stroke: #4fd18b; }
   .spark-line.down { stroke: #ff6b6b; }
@@ -696,8 +697,9 @@
       function fmtChg(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
 
       // mini sparkline: price line (green/red) + a thin bluish previous-close line
-      function buildSpark(series, prevClose, up) {
+      function buildSpark(series, prevClose, up, breaks) {
         var W = 100, H = 34;
+        var n = series.length;
         var wrap = document.createElement("div");
         wrap.className = "spark-wrap";
         var svg = document.createElementNS(SVG, "svg");
@@ -711,6 +713,19 @@
         min -= pad; max += pad;
         var span = (max - min) || 1;
         function y(v) { return (H - (v - min) / span * H); }
+        // silver dashed vertical line at each day cutoff
+        if (breaks && breaks.length && n > 1) {
+          for (var b = 0; b < breaks.length; b++) {
+            var bi = breaks[b];
+            if (bi <= 0 || bi >= n) continue;
+            var vx = (bi / (n - 1) * W).toFixed(2);
+            var vl = document.createElementNS(SVG, "line");
+            vl.setAttribute("x1", vx); vl.setAttribute("x2", vx);
+            vl.setAttribute("y1", "0"); vl.setAttribute("y2", String(H));
+            vl.setAttribute("class", "spark-daybreak");
+            svg.appendChild(vl);
+          }
+        }
         // dotted previous-close reference line
         if (isFinite(prevClose)) {
           var ln = document.createElementNS(SVG, "line");
@@ -719,7 +734,6 @@
           ln.setAttribute("class", "spark-prev");
           svg.appendChild(ln);
         }
-        var n = series.length;
         if (n > 1) {
           var pts = [];
           for (var i = 0; i < n; i++) pts.push((i / (n - 1) * W).toFixed(2) + "," + y(series[i]).toFixed(2));
@@ -749,7 +763,7 @@
         var ch = document.createElement("span"); ch.className = "mkt-chg " + (up ? "up" : "down"); ch.textContent = fmtChg(it.changePct);
         head.appendChild(lbl); head.appendChild(pr); head.appendChild(ch);
         el.appendChild(head);
-        if (it.series && it.series.length > 1) el.appendChild(buildSpark(it.series, it.prevClose, up));
+        if (it.series && it.series.length > 1) el.appendChild(buildSpark(it.series, it.prevClose, up, it.breaks));
         return el;
       }
 
