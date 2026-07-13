@@ -300,12 +300,13 @@
   .spark-dot { position: absolute; right: 1px; width: 6px; height: 6px; border-radius: 50%; transform: translate(50%, -50%); }
   .spark-dot.up { background: #4fd18b; }
   .spark-dot.down { background: #ff6b6b; }
-  .spark-dot::after {
+  /* the pulse ring only renders when the market is open (.live) */
+  .spark-dot.live::after {
     content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit;
     animation: sparkPulse 1.8s ease-out infinite;
   }
   @keyframes sparkPulse { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(3.4); opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .spark-dot::after { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .spark-dot.live::after { animation: none; } }
   .markets-empty { color: var(--mute); font-size: 12.5px; padding: 12px; }
 </style>
 </head>
@@ -697,7 +698,7 @@
       function fmtChg(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
 
       // mini sparkline: price line (green/red) + a thin bluish previous-close line
-      function buildSpark(series, prevClose, up, breaks) {
+      function buildSpark(series, prevClose, up, breaks, open) {
         var W = 100, H = 34;
         var n = series.length;
         var wrap = document.createElement("div");
@@ -746,7 +747,7 @@
         // pulsing dot at the latest point (HTML element so it stays round)
         if (n >= 1) {
           var dot = document.createElement("span");
-          dot.className = "spark-dot " + (up ? "up" : "down");
+          dot.className = "spark-dot " + (up ? "up" : "down") + (open ? " live" : "");
           dot.style.top = (y(series[n - 1]) / H * 100).toFixed(1) + "%";
           wrap.appendChild(dot);
         }
@@ -763,7 +764,7 @@
         var ch = document.createElement("span"); ch.className = "mkt-chg " + (up ? "up" : "down"); ch.textContent = fmtChg(it.changePct);
         head.appendChild(lbl); head.appendChild(pr); head.appendChild(ch);
         el.appendChild(head);
-        if (it.series && it.series.length > 1) el.appendChild(buildSpark(it.series, it.prevClose, up, it.breaks));
+        if (it.series && it.series.length > 1) el.appendChild(buildSpark(it.series, it.prevClose, up, it.breaks, it.open));
         return el;
       }
 

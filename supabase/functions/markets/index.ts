@@ -109,9 +109,12 @@ async function quoteWithSpark(inst: typeof INSTRUMENTS[number]) {
     series = series.map((v) => Math.round(v * 100) / 100);
 
     const changePct = ((price - prev) / prev) * 100;
+    // BTC trades 24/7; everything else is "open" only in Yahoo's REGULAR session
+    // (marketState already accounts for weekends and market holidays).
+    const open = inst.key === "btc" ? true : (meta?.marketState === "REGULAR");
     return {
       key: inst.key, label: inst.label, unit: inst.unit ?? "",
-      price, prevClose: prev, changePct, series, breaks,
+      price, prevClose: prev, changePct, series, breaks, open,
     };
   } catch {
     return null;
