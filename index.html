@@ -264,9 +264,8 @@
   /* ---------- market cards (second screen, top-center; all shown, with sparklines) ---------- */
   .markets {
     position: fixed; top: clamp(14px, 3vh, 26px);
-    left: 0; right: 0;
-    /* clear the left nav rail so the first card doesn't slide under it */
-    padding: 0 16px 0 76px;
+    /* start right of the nav rail so the bar never overlaps the collapse toggle */
+    left: 76px; right: 16px;
     z-index: 40;
     display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
@@ -716,11 +715,10 @@
         min -= pad; max += pad;
         var span = (max - min) || 1;
         function y(v) { return (H - (v - min) / span * H); }
-        // silver dashed vertical line at each day cutoff
+        // solid silver vertical line at the most recent day cutoff (one per card)
         if (breaks && breaks.length && n > 1) {
-          for (var b = 0; b < breaks.length; b++) {
-            var bi = breaks[b];
-            if (bi <= 0 || bi >= n) continue;
+          var bi = breaks[breaks.length - 1];
+          if (bi > 0 && bi < n) {
             var vx = (bi / (n - 1) * W).toFixed(2);
             var vl = document.createElementNS(SVG, "line");
             vl.setAttribute("x1", vx); vl.setAttribute("x2", vx);
