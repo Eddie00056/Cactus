@@ -17,12 +17,13 @@ const UA =
   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 const INSTRUMENTS: Array<
-  { key: string; label: string; yahoo: string; unit?: string; isYield?: boolean }
+  { key: string; label: string; yahoo: string; yahooAlt?: string; unit?: string; isYield?: boolean }
 > = [
   { key: "spx",   label: "S&P 500",  yahoo: "^GSPC" },
   { key: "ndq",   label: "Nasdaq",   yahoo: "^IXIC" },
   { key: "btc",   label: "BTC",      yahoo: "BTC-USD", unit: "$" },
-  { key: "xau",   label: "Gold/USD", yahoo: "GC=F",    unit: "$" },
+  // spot XAU/USD (cleaner than GC=F futures); fall back to futures if spot has no data
+  { key: "xau",   label: "Gold/USD", yahoo: "XAUUSD=X", yahooAlt: "GC=F", unit: "$" },
   { key: "us10y", label: "10Y",      yahoo: "^TNX",    unit: "%", isYield: true },
 ];
 
@@ -61,15 +62,21 @@ async function yahoo(symbol: string, qs: string) {
   return { meta: res.meta, points };
 }
 
+async function fetchSeries(symbol: string) {
+  // 5 days of 15m bars; fall back to 30m/1mo if intraday is empty
+  let data = await yahoo(symbol, "interval=15m&range=5d");
+  if (!data || data.points.length < 2) {
+    const alt = await yahoo(symbol, "interval=30m&range=1mo");
+    if (alt && alt.points.length >= 2) data = alt;
+  }
+  return (data && data.points.length) ? data : null;
+}
+
 async function quoteWithSpark(inst: typeof INSTRUMENTS[number]) {
   try {
-    // 5 days of 15m bars, then slice to the most recent ~2 days (robust over weekends)
-    let data = await yahoo(inst.yahoo, "interval=15m&range=5d");
-    if (!data || data.points.length < 2) {
-      const alt = await yahoo(inst.yahoo, "interval=30m&range=1mo");
-      if (alt && alt.points.length >= 2) data = alt;
-    }
-    if (!data || !data.points.length) return null;
+    let data = await fetchSeries(inst.yahoo);
+    if (!data && inst.yahooAlt) data = await fetchSeries(inst.yahooAlt);
+    if (!data) return null;
 
     const meta = data.meta;
     const lastT = data.points[data.points.length - 1].t;
