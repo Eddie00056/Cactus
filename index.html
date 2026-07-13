@@ -263,9 +263,10 @@
 
   /* ---------- market cards (second screen, top-center; all shown, with sparklines) ---------- */
   .markets {
-    position: fixed; top: clamp(14px, 3vh, 26px); left: 50%;
-    transform: translateX(-50%);
-    width: min(960px, calc(100% - 24px));
+    position: fixed; top: clamp(14px, 3vh, 26px);
+    left: 0; right: 0;
+    /* clear the left nav rail so the first card doesn't slide under it */
+    padding: 0 16px 0 76px;
     z-index: 40;
     display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
@@ -273,7 +274,7 @@
   /* show only on the second (join) screen */
   .join-screen.show ~ .markets { opacity: 1; pointer-events: auto; }
   .mkt-tile {
-    flex: 1 1 150px; min-width: 138px; max-width: 210px;
+    flex: 1 1 140px; min-width: 122px; max-width: 200px;
     display: flex; flex-direction: column; gap: 4px;
     padding: 11px 13px; border-radius: 14px;
     background: rgba(255,255,255,0.05);
