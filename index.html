@@ -166,7 +166,8 @@
   @media (prefers-reduced-motion: reduce) { .join-bg::before { animation: none; } }
   .join-content {
     position: relative; z-index: 1;
-    flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 32px;
+    flex: 1; min-width: 0; display: flex; align-items: stretch; justify-content: center;
+    text-align: center; padding: 22px 18px 24px;
   }
   .join-screen h2 {
     font-family: var(--font-display); font-weight: var(--display-weight);
@@ -208,17 +209,11 @@
   @media (prefers-reduced-motion: reduce) { .stage > * { opacity: 1 !important; transform: none !important; animation: none !important; } }
 
   /* ---------- ask bar (product prompt) — fixed bottom-center, follows on scroll ---------- */
+  /* the ask bar lives inside the connectors page now, not pinned to the viewport */
   .prompt-bar {
-    position: fixed; left: 50%; bottom: clamp(16px, 4vh, 30px);
-    transform: translateX(-50%);
-    width: min(680px, calc(100% - 32px));
-    z-index: 40;
+    position: relative; width: min(680px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 10px;
-    opacity: 0; pointer-events: none;          /* hidden on the hero */
-    transition: opacity 0.6s ease;
   }
-  /* show the ask bar only on the second (join) screen */
-  .join-screen.show ~ .prompt-bar { opacity: 1; pointer-events: auto; }
 
   .prompt-note {
     display: none;
@@ -309,6 +304,312 @@
   @keyframes sparkPulse { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(3.4); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .spark-dot.live::after { animation: none; } }
   .markets-empty { color: var(--mute); font-size: 12.5px; padding: 12px; }
+
+  /* ============ trade ticket ============ */
+  .ticket {
+    background: rgba(10,16,14,0.72);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    backdrop-filter: blur(24px) saturate(120%);
+    border: 1px solid rgba(243,246,252,0.10);
+    border-radius: 18px;
+    padding: 15px;
+    text-align: left;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tk-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .tk-mkt { position: relative; }
+  .tk-mkt-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: 0; padding: 0; cursor: pointer;
+    color: var(--ink); font-family: var(--sans); font-size: 15px; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .tk-mkt-btn svg { width: 12px; height: 12px; opacity: 0.55; }
+  .tk-mkt-sub { color: var(--mute); font-size: 11px; margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tk-menu {
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 5;
+    min-width: 190px; padding: 5px;
+    background: rgba(14,20,18,0.96);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+    border: 1px solid rgba(243,246,252,0.10); border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.7);
+    display: none;
+  }
+  .tk-menu.open { display: block; }
+  .tk-menu button {
+    display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 14px;
+    background: none; border: 0; cursor: pointer; border-radius: 8px;
+    padding: 8px 9px; color: var(--soft); font-family: var(--sans); font-size: 13px; text-align: left;
+  }
+  .tk-menu button:hover { background: rgba(243,246,252,0.07); color: var(--ink); }
+  .tk-menu button.on { color: var(--accent); }
+  .tk-menu button span { color: var(--mute); font-size: 11px; font-family: var(--mono); }
+
+  /* side toggle lives in the header, next to the symbol */
+  .tk-side { display: flex; gap: 4px; flex: 0 0 auto; padding: 3px; border-radius: 10px; background: rgba(243,246,252,0.05); }
+  .tk-side button {
+    border: 0; border-radius: 7px; cursor: pointer; padding: 7px 16px;
+    background: none; color: var(--mute); font-family: var(--sans); font-size: 13px; font-weight: 600;
+    transition: background 0.14s ease, color 0.14s ease;
+  }
+  .tk-side button[data-on="1"][data-side="buy"] { background: rgba(95,211,154,0.16); color: #6fe0a8; }
+  .tk-side button[data-on="1"][data-side="sell"] { background: rgba(242,112,95,0.16); color: #ff8676; }
+
+  .tk-label { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 5px; }
+  .tk-label.end { justify-content: flex-end; }
+
+  /* static info line, e.g. order type */
+  .tk-meta {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-top: 12px; padding-bottom: 9px;
+    border-bottom: 1px solid rgba(243,246,252,0.07);
+    color: var(--mute); font-size: 12px;
+  }
+  .tk-meta span:last-child { color: var(--soft); font-family: var(--mono); font-size: 12px; }
+  .tk-label span { color: var(--mute); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .tk-unit { display: flex; gap: 3px; padding: 2px; border-radius: 7px; background: rgba(243,246,252,0.05); }
+  .tk-unit button {
+    border: 0; background: none; cursor: pointer; border-radius: 5px; padding: 3px 8px;
+    color: var(--mute); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.03em;
+  }
+  .tk-unit button[data-on="1"] { background: rgba(243,246,252,0.11); color: var(--ink); }
+
+  .tk-amt {
+    display: flex; align-items: center; gap: 8px;
+    border-radius: 11px; padding: 8px 8px 8px 13px;
+    background: rgba(243,246,252,0.045); border: 1px solid rgba(243,246,252,0.10);
+  }
+  .tk-amt input {
+    flex: 1; min-width: 0; width: 100%;
+    border: 0; background: none; padding: 4px 0; outline: none;
+    color: var(--ink); font-family: var(--mono); font-size: 19px; letter-spacing: -0.01em;
+  }
+  .tk-amt input::placeholder { color: rgba(243,246,252,0.28); }
+
+  /* size presets live inside the field, where the unit label used to sit */
+  .tk-chips { display: flex; gap: 4px; flex: 0 0 auto; }
+  .tk-chips button {
+    border-radius: 7px; cursor: pointer; padding: 5px 9px;
+    background: rgba(243,246,252,0.06); border: 1px solid rgba(243,246,252,0.07);
+    color: var(--mute); font-family: var(--mono); font-size: 11px; line-height: 1;
+    transition: background 0.14s ease, color 0.14s ease;
+  }
+  .tk-chips button:hover { background: rgba(95,163,126,0.22); color: var(--ink); }
+
+  .tk-lev { display: flex; align-items: center; gap: 10px; margin-top: 11px; }
+  .tk-lev-lbl { color: var(--mute); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; flex: 0 0 auto; }
+  /* numeric readout box, like the one beside the reference slider */
+  .tk-num {
+    flex: 0 0 auto; min-width: 46px; text-align: center;
+    padding: 5px 8px; border-radius: 8px;
+    background: rgba(243,246,252,0.06); border: 1px solid rgba(243,246,252,0.08);
+    color: var(--ink); font-family: var(--mono); font-size: 12.5px;
+  }
+  .tk-lev input[type="range"] {
+    flex: 1; -webkit-appearance: none; appearance: none; height: 3px; border-radius: 3px;
+    background: rgba(243,246,252,0.14); outline: none; cursor: pointer;
+  }
+  .tk-lev input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%;
+    background: var(--accent); border: 2px solid #0b100e; cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(95,163,126,0.55);
+  }
+  .tk-lev input[type="range"]::-moz-range-thumb {
+    width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+    border: 2px solid #0b100e; cursor: pointer;
+  }
+
+  /* the summary takes the slack, which keeps the send button on the bottom edge
+     and gives the disclosure somewhere to open into */
+  .tk-sum { flex: 1 1 auto; margin-top: 12px; padding-top: 11px; border-top: 1px solid rgba(243,246,252,0.08); }
+  .tk-disc {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    background: none; border: 0; cursor: pointer; padding: 7px 0; margin-top: 4px;
+    color: var(--mute); font-family: var(--sans); font-size: 10.5px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    border-top: 1px solid rgba(243,246,252,0.07);
+    transition: color 0.14s ease;
+  }
+  .tk-disc:hover { color: var(--soft); }
+  .tk-disc svg { width: 13px; height: 13px; opacity: 0.6; transition: transform 0.2s ease; }
+  .tk-disc[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .tk-details { display: none; padding-bottom: 2px; }
+  .tk-details.open { display: block; }
+  .tk-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 2.5px 0; }
+  .tk-row dt { color: var(--mute); font-size: 11.5px; }
+  .tk-row dt i { font-style: normal; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.55; }
+  .tk-row dd { color: var(--soft); font-family: var(--mono); font-size: 12px; }
+  .tk-row.total { padding: 0 0 3px; }
+  .tk-row.total dt { color: var(--soft); font-size: 13px; font-weight: 600; }
+  .tk-row.total dd { color: var(--ink); font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+  .tk-row dd.warn { color: #f2b25f; }
+
+  /* collapsible detail rows */
+
+  .tk-send {
+    width: 100%; margin-top: 12px; border: 0; border-radius: 12px; cursor: pointer;
+    padding: 12px 0; font-family: var(--sans); font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em;
+    color: #071009; background: #6fe0a8;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    transition: filter 0.14s ease, transform 0.08s ease;
+  }
+  .tk-send:hover { filter: brightness(1.08); }
+  .tk-send:active { transform: translateY(1px); }
+  .tk-send[data-side="sell"] { background: #ff8676; }
+  .tk-send[disabled] { opacity: 0.4; cursor: not-allowed; }
+  .tk-send kbd {
+    font-family: var(--mono); font-size: 10.5px; padding: 2px 6px; border-radius: 5px;
+    background: rgba(0,0,0,0.22); color: rgba(7,16,9,0.72);
+  }
+
+  .tk-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 9px; }
+  .tk-keys { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tk-keys kbd {
+    font-family: var(--mono); font-size: 9.5px; padding: 2.5px 5px; border-radius: 4px;
+    background: rgba(243,246,252,0.06); border: 1px solid rgba(243,246,252,0.07); color: var(--mute);
+  }
+  .tk-conn { display: flex; align-items: center; gap: 5px; color: var(--mute); font-size: 10.5px; white-space: nowrap; }
+  .tk-dot { width: 6px; height: 6px; border-radius: 50%; background: #f2b25f; box-shadow: 0 0 7px currentColor; }
+  .tk-conn[data-state="live"] .tk-dot { background: #5fd39a; }
+  .tk-conn[data-state="down"] .tk-dot { background: #f2705f; }
+
+  .tk-note { margin-top: 9px; color: var(--mute); font-size: 10.5px; line-height: 1.4; }
+  .tk-note.err { color: #f2b25f; }
+
+  @media (max-width: 520px) {
+    .tk-keys { display: none; }
+    .join-screen .join-content { padding: 18px 12px 20px; }
+    .ticket { padding: 14px; }
+    .tk-chips button { padding: 5px 7px; font-size: 10.5px; }
+  }
+
+  /* keep the ticket inside the viewport between the market cards and the ask bar */
+  .join-screen .join-content { overflow: visible; }
+  .ticket { flex: 0 0 360px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
+  .ticket::-webkit-scrollbar { width: 6px; }
+  .ticket::-webkit-scrollbar-thumb { background: rgba(243,246,252,0.12); border-radius: 3px; }
+
+  /* ============ chart + ticket layout ============ */
+  /* height is driven by the ticket; the chart stretches to match, so both
+     panels share a bottom edge */
+  /* ---------- sidebar nav + pages ---------- */
+  .panel-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 18px; width: 100%; }
+  .panel-nav button {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; border: 0; background: none; cursor: pointer; pointer-events: auto;
+    border-radius: 9px; padding: 8px 7px; color: var(--mute);
+    font-family: var(--sans); font-size: 12.5px; text-align: left; white-space: nowrap;
+    transition: background 0.14s ease, color 0.14s ease;
+  }
+  .panel-nav button:hover { color: var(--ink); background: rgba(243,246,252,0.05); }
+  .panel-nav button[data-on="1"] { color: var(--accent); background: rgba(95,163,126,0.13); }
+  .panel-nav svg { width: 19px; height: 19px; flex: 0 0 auto; }
+  .join-panel.collapsed .panel-nav span { display: none; }
+  .join-panel.collapsed .panel-nav button { justify-content: center; padding: 8px 0; }
+
+  .page { display: none; width: 100%; height: 100%; min-width: 0; }
+  .page[data-on="1"] { display: block; }
+
+  /* ---------- connectors page: the ask bar, bottom-centre as before ---------- */
+  .ask-page {
+    height: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: clamp(16px, 4vh, 30px);
+  }
+
+  /* Both panels share one fixed height, so opening the ticket's detail rows
+     expands into space it already owns and never resizes the chart. The band
+     below is left free — that is where a positions/orders panel would go. */
+  /* ---------- market search palette ---------- */
+  .cmd { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-start; justify-content: center; }
+  .cmd[hidden] { display: none; }
+  .cmd-scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .cmd-box {
+    position: relative; z-index: 1; margin-top: 14vh;
+    width: min(560px, calc(100% - 32px));
+    background: rgba(12,18,16,0.94);
+    -webkit-backdrop-filter: blur(26px) saturate(120%); backdrop-filter: blur(26px) saturate(120%);
+    border: 1px solid rgba(243,246,252,0.12); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 32px 90px rgba(0,0,0,0.7);
+    opacity: 1;
+  }
+  .cmd:not([hidden]) .cmd-box { animation: cmdIn 0.14s ease-out; }
+  @keyframes cmdIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .cmd-field { display: flex; align-items: center; gap: 11px; padding: 14px 15px; border-bottom: 1px solid rgba(243,246,252,0.08); }
+  .cmd-field svg { width: 17px; height: 17px; color: var(--mute); flex: 0 0 auto; }
+  .cmd-field input {
+    flex: 1; min-width: 0; border: 0; background: none; outline: none;
+    color: var(--ink); font-family: var(--sans); font-size: 15px; letter-spacing: -0.01em;
+  }
+  .cmd-field input::placeholder { color: rgba(243,246,252,0.32); }
+  .cmd-field kbd {
+    font-family: var(--mono); font-size: 10px; padding: 3px 6px; border-radius: 5px;
+    background: rgba(243,246,252,0.07); border: 1px solid rgba(243,246,252,0.08); color: var(--mute);
+  }
+  .cmd-list { max-height: 46vh; overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+  .cmd-row {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    border: 0; background: none; cursor: pointer; border-radius: 9px;
+    padding: 9px 10px; color: var(--soft); font-family: var(--sans); font-size: 13.5px; text-align: left;
+  }
+  .cmd-row[data-sel="1"] { background: rgba(95,163,126,0.16); color: var(--ink); }
+  .cmd-row b { font-weight: 600; min-width: 74px; }
+  .cmd-row i { font-style: normal; color: var(--mute); font-size: 11.5px; flex: 1; }
+  .cmd-row em {
+    font-style: normal; color: var(--mute); font-family: var(--mono); font-size: 10.5px;
+    padding: 2px 6px; border-radius: 5px; background: rgba(243,246,252,0.06);
+  }
+  .cmd-empty { padding: 22px 12px; text-align: center; color: var(--mute); font-size: 12.5px; }
+
+  .tk-stage {
+    display: flex; gap: 14px; width: 100%; min-width: 0;
+    height: 72vh; min-height: 420px;
+    align-items: stretch;
+  }
+  .tk-chart-wrap {
+    flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;
+    background: rgba(10,16,14,0.62);
+    -webkit-backdrop-filter: blur(24px) saturate(120%); backdrop-filter: blur(24px) saturate(120%);
+    border: 1px solid rgba(243,246,252,0.10); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .ch-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 14px; border-bottom: 1px solid rgba(243,246,252,0.07);
+  }
+  .ch-sym { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .ch-last { font-family: var(--mono); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+  .ch-chg { font-family: var(--mono); font-size: 12px; color: var(--mute); }
+  .ch-chg.up { color: #5fd39a; }
+  .ch-chg.dn { color: #f2705f; }
+  .ch-ohlc { display: flex; gap: 10px; color: var(--mute); font-family: var(--mono); font-size: 11px; margin-left: auto; }
+  .ch-ohlc b { font-weight: 400; color: var(--soft); }
+
+  .ch-ints { display: flex; gap: 3px; padding: 2px; border-radius: 8px; background: rgba(243,246,252,0.05); }
+  .ch-ints button {
+    border: 0; background: none; cursor: pointer; border-radius: 6px; padding: 4px 8px;
+    color: var(--mute); font-family: var(--mono); font-size: 11px;
+  }
+  .ch-ints button[data-on="1"] { background: rgba(243,246,252,0.11); color: var(--ink); }
+  .ch-ints button:hover { color: var(--ink); }
+
+  .ch-body { position: relative; flex: 1 1 auto; min-height: 0; }
+  .ch-body canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .ch-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--mute); font-size: 12px; pointer-events: none;
+  }
+  .ch-empty[hidden] { display: none; }
+
+  @media (max-width: 900px) {
+    .tk-stage { flex-direction: column; overflow-y: auto; height: auto; min-height: 0; }
+    .tk-chart-wrap { flex: 0 0 300px; }
+    .ticket { flex: 0 0 auto; max-width: none; }
+    .ch-ohlc { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -330,6 +631,7 @@
         </button>
       </div>
     </section>
+
   </main>
 
   <!-- join screen (revealed in-page after the CTA transition; same canvas, no reload) -->
@@ -356,16 +658,130 @@
           </svg>
         </div>
       </div>
+
+      <nav class="panel-nav" id="panelNav" aria-label="Sections">
+        <button type="button" data-action="search" title="Search markets  /">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.4" /><path d="M15.8 15.8 L20.5 20.5" />
+          </svg>
+          <span>Search</span>
+        </button>
+        <button type="button" data-page="trade" data-on="1" title="Trade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 4 L7 20" /><rect x="4.6" y="8" width="4.8" height="8" rx="1.2" />
+            <path d="M17 3 L17 21" /><rect x="14.6" y="6.5" width="4.8" height="7" rx="1.2" />
+          </svg>
+          <span>Trade</span>
+        </button>
+        <button type="button" data-page="ask" data-on="0" title="Connectors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 3 L9 8" /><path d="M15 3 L15 8" />
+            <rect x="6" y="8" width="12" height="6" rx="2" />
+            <path d="M12 14 L12 18" /><circle cx="12" cy="20" r="1.6" />
+          </svg>
+          <span>Connectors</span>
+        </button>
+      </nav>
     </aside>
     <div class="join-content">
-      <div>
-        <h2>You're in.</h2>
-        <p>This screen is a placeholder — we'll design the real one next.</p>
-      </div>
-    </div>
-  </section>
+      <section class="page" id="pageTrade" data-on="1">
+      <div class="tk-stage">
+        <div class="tk-chart-wrap">
+          <div class="ch-head">
+            <span class="ch-sym" id="chSym">SPCX</span>
+            <span class="ch-last" id="chLast">&mdash;</span>
+            <span class="ch-chg" id="chChg">&mdash;</span>
+            <div class="ch-ints" id="chInts"></div>
+            <div class="ch-ohlc" id="chOhlc"></div>
+          </div>
+          <div class="ch-body">
+            <canvas id="chart"></canvas>
+            <div class="ch-empty" id="chEmpty">Loading candles&hellip;</div>
+          </div>
+        </div>
 
-  <!-- ask bar (fixed bottom-center; visual only for now — AI endpoint comes next) -->
+      <div class="ticket" id="ticket">
+
+        <div class="tk-head">
+          <div class="tk-mkt">
+            <button type="button" class="tk-mkt-btn" id="tkMktBtn" aria-haspopup="true" aria-expanded="false">
+              <span id="tkMktName">SPCX</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9 L12 15 L18 9" /></svg>
+            </button>
+            <div class="tk-mkt-sub" id="tkMktSub">SpaceX · perp</div>
+            <div class="tk-menu" id="tkMenu" role="menu"></div>
+          </div>
+          <div class="tk-side" id="tkSide" role="group" aria-label="Order side">
+            <button type="button" data-side="buy" data-on="1">Buy</button>
+            <button type="button" data-side="sell" data-on="0">Sell</button>
+          </div>
+        </div>
+
+        <div class="tk-meta">
+          <span>Order type</span><span>Market</span>
+        </div>
+
+        <div class="tk-label end">
+          <div class="tk-unit" id="tkUnit">
+            <button type="button" data-unit="usd" data-on="1">USD</button>
+            <button type="button" data-unit="qty" data-on="0">QTY</button>
+          </div>
+        </div>
+        <div class="tk-amt">
+          <input type="text" id="tkAmt" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-label="Order size" />
+          <div class="tk-chips" id="tkChips">
+            <button type="button" data-usd="100">100</button>
+            <button type="button" data-usd="500">500</button>
+            <button type="button" data-usd="1000">1k</button>
+            <button type="button" data-usd="5000">5k</button>
+          </div>
+        </div>
+
+        <div class="tk-lev">
+          <span class="tk-lev-lbl">Leverage</span>
+          <input type="range" id="tkLev" min="1" max="20" step="1" value="1" aria-label="Leverage" />
+          <div class="tk-num" id="tkLevVal">1&times;</div>
+        </div>
+
+        <div class="tk-sum">
+          <dl>
+            <div class="tk-row total"><dt>Total cost</dt><dd id="tkTotal">&mdash;</dd></div>
+            <div class="tk-row"><dt>Est. liq. price <i>isolated</i></dt><dd id="tkLiq" class="warn">&mdash;</dd></div>
+          </dl>
+
+          <button type="button" class="tk-disc" id="tkDisc" aria-expanded="false" aria-controls="tkDetails">
+            <span>Details</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9 L12 15 L18 9" /></svg>
+          </button>
+
+          <dl class="tk-details" id="tkDetails">
+            <div class="tk-row"><dt>Order value</dt><dd id="tkNotional">&mdash;</dd></div>
+            <div class="tk-row"><dt>Margin required</dt><dd id="tkMargin">&mdash;</dd></div>
+            <div class="tk-row"><dt>Quantity</dt><dd id="tkQty">&mdash;</dd></div>
+            <div class="tk-row"><dt>Fee</dt><dd id="tkFeeUs">&mdash;</dd></div>
+            <div class="tk-row"><dt>Funding (1h)</dt><dd id="tkFunding">&mdash;</dd></div>
+          </dl>
+        </div>
+
+        <button type="button" class="tk-send" id="tkSend" data-side="buy">
+          <span id="tkSendLabel">Buy SPCX</span><kbd>&crarr;</kbd>
+        </button>
+
+        <div class="tk-foot">
+          <div class="tk-keys">
+            <kbd>B</kbd><kbd>S</kbd><kbd>U qty</kbd><kbd>1-4</kbd><kbd>&uarr;&darr; lev</kbd><kbd>&crarr; send</kbd>
+          </div>
+          <div class="tk-conn" id="tkConn" data-state="idle"><span class="tk-dot"></span><span id="tkConnText">connecting</span></div>
+        </div>
+
+        <div class="tk-note" id="tkNote">Live prices from Hyperliquid. Signing not wired yet &mdash; this previews the exact order.</div>
+
+      </div>
+      </div>
+      </section>
+
+      <section class="page" id="pageAsk" data-on="0">
+        <div class="ask-page">
   <form class="prompt-bar" id="askBar" autocomplete="off" aria-label="Ask Cactus">
     <div class="prompt-note" id="promptNote" role="status" aria-live="polite"></div>
     <div class="prompt-row">
@@ -378,10 +794,27 @@
       </button>
     </div>
   </form>
+        </div>
+      </section>
+    </div>
+  </section>
 
-  <!-- market cards (second screen, top-center) -->
-  <div class="markets" id="markets" aria-label="Market indices (delayed)">
-    <div class="markets-empty">Loading markets…</div>
+
+
+
+  <!-- market search: opens from the sidebar or the / key -->
+  <div class="cmd" id="cmd" hidden>
+    <div class="cmd-scrim" id="cmdScrim"></div>
+    <div class="cmd-box" role="dialog" aria-modal="true" aria-label="Search markets">
+      <div class="cmd-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.4" /><path d="M15.8 15.8 L20.5 20.5" />
+        </svg>
+        <input type="text" id="cmdInput" placeholder="Search markets&hellip;" autocomplete="off" spellcheck="false" aria-label="Search markets" />
+        <kbd>esc</kbd>
+      </div>
+      <div class="cmd-list" id="cmdList"></div>
+    </div>
   </div>
 
   <script>
@@ -791,6 +1224,871 @@
       setInterval(load, 60000);
     })();
   </script>
+
+
+  <script>
+    /* ---------- trade ticket: live Hyperliquid prices + order preview ---------- */
+    (function () {
+      var API = "https://api.hyperliquid.xyz/info";
+      var WSU = "wss://api.hyperliquid.xyz/ws";
+
+      /* Hyperliquid tier-0 taker fee is 0.045% of notional; it drops with 14d volume
+         (0.040% >$5M, 0.035% >$25M ...). The builder-code fee is charged on top and is
+         capped at 10 bps on perps. */
+      var TAKER_FEE = 0.00045;
+      var BUILDER_BPS = 1;            /* 1 bp = 0.01%. Phantom charges 5 bps, so all-in we are
+                                         0.055% against their 0.095% — roughly 42% cheaper. */
+
+      /* dex "" is the main perp dex; "xyz" is the HIP-3 dex hosting the pre-IPO markets. */
+      var MARKETS = [
+        { sym: "SPCX", dex: "xyz", label: "SpaceX · perp" },
+        { sym: "BTC",  dex: "",    label: "Bitcoin · perp" },
+        { sym: "ETH",  dex: "",    label: "Ethereum · perp" },
+        { sym: "SOL",  dex: "",    label: "Solana · perp" }
+      ];
+
+      var el = {};
+      ["tkMktBtn","tkMktName","tkMktSub","tkMenu","tkSide","tkUnit","tkAmt","tkChips",
+       "tkLev","tkLevVal","tkDisc","tkDetails","tkQty","tkNotional","tkMargin","tkFeeUs","tkLiq",
+       "tkFunding","tkTotal","tkSend","tkSendLabel","tkConn","tkConnText","tkNote"]
+        .forEach(function (id) { el[id] = document.getElementById(id); });
+      if (!el.tkAmt) return;
+
+      var state = {
+        i: 0,                 /* index into MARKETS */
+        side: "buy",
+        unit: "usd",
+        amt: 0,
+        lev: 1,
+        meta: {},             /* coin -> { szDecimals, maxLeverage } */
+        ctx:  {},             /* coin -> { markPx, midPx, prevDayPx, funding } */
+        book: {},             /* coin -> { bids:[[px,sz]], asks:[[px,sz]] } */
+        ws: null, wsCoin: null, pollTimer: null
+      };
+
+      function mkt()  { return MARKETS[state.i]; }
+      function coin() { var m = mkt(); return m.dex ? m.dex + ":" + m.sym : m.sym; }
+
+      /* ---------- formatting ---------- */
+      function nf(v, d) {
+        if (!isFinite(v)) return "—";
+        return v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      function usd(v) {
+        if (!isFinite(v)) return "—";
+        var a = Math.abs(v);
+        return "$" + nf(v, a > 0 && a < 0.01 ? 4 : 2);
+      }
+      function pxFmt(v) {
+        if (!isFinite(v) || v <= 0) return "—";
+        var d = v >= 1000 ? 2 : v >= 100 ? 2 : v >= 1 ? 3 : 5;
+        return "$" + nf(v, d);
+      }
+      function qtyFmt(v) {
+        var sd = (state.meta[coin()] || {}).szDecimals;
+        if (sd == null) sd = 4;
+        return isFinite(v) ? nf(v, sd) : "—";
+      }
+      function conn(st, text) {
+        el.tkConn.setAttribute("data-state", st);
+        el.tkConnText.textContent = text;
+      }
+
+      /* ---------- data ---------- */
+      function post(body) {
+        return fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        }).then(function (r) { return r.json(); });
+      }
+
+      function absorb(dex, data) {
+        /* metaAndAssetCtxs -> [ { universe:[...] }, [ ctx, ... ] ] */
+        if (!data || !data[0] || !data[0].universe) return;
+        var uni = data[0].universe, ctxs = data[1] || [];
+        for (var k = 0; k < uni.length; k++) {
+          var c = dex ? dex + ":" + uni[k].name : uni[k].name;
+          state.meta[c] = { szDecimals: uni[k].szDecimals, maxLeverage: uni[k].maxLeverage || 20 };
+          if (ctxs[k]) state.ctx[c] = ctxs[k];
+        }
+      }
+
+      function bootstrap() {
+        var dexes = [];
+        MARKETS.forEach(function (m) { if (dexes.indexOf(m.dex) < 0) dexes.push(m.dex); });
+        return Promise.all(dexes.map(function (d) {
+          return post({ type: "metaAndAssetCtxs", dex: d })
+            .then(function (data) { absorb(d, data); })
+            .catch(function () { /* one dex failing must not kill the others */ });
+        })).then(function () {
+          applyLevBounds();
+          render();
+        });
+      }
+
+      function poll() {
+        clearInterval(state.pollTimer);
+        state.pollTimer = setInterval(function () {
+          post({ type: "metaAndAssetCtxs", dex: mkt().dex })
+            .then(function (data) { absorb(mkt().dex, data); render(); })
+            .catch(function () { conn("down", "offline"); });
+        }, 4000);
+      }
+
+      function sub(method) {
+        if (!state.ws || state.ws.readyState !== 1 || !state.wsCoin) return;
+        [{ type: "activeAssetCtx", coin: state.wsCoin }, { type: "l2Book", coin: state.wsCoin }]
+          .forEach(function (s) { state.ws.send(JSON.stringify({ method: method, subscription: s })); });
+      }
+
+      function retarget() {
+        var next = coin();
+        if (state.ws && state.ws.readyState === 1) {
+          if (state.wsCoin && state.wsCoin !== next) sub("unsubscribe");
+          state.wsCoin = next;
+          sub("subscribe");
+        } else {
+          state.wsCoin = next;
+        }
+      }
+
+      function connect() {
+        var ws;
+        try { ws = new WebSocket(WSU); } catch (e) { conn("down", "offline"); poll(); return; }
+        state.ws = ws;
+        conn("idle", "connecting");
+
+        ws.onopen = function () {
+          conn("live", "live");
+          clearInterval(state.pollTimer);
+          state.wsCoin = coin();
+          sub("subscribe");
+        };
+
+        ws.onmessage = function (ev) {
+          var msg;
+          try { msg = JSON.parse(ev.data); } catch (e) { return; }
+          var d = msg && msg.data;
+          if (msg.channel === "activeAssetCtx" && d && d.ctx) {
+            state.ctx[d.coin || state.wsCoin] = d.ctx;
+            render();
+          } else if (msg.channel === "l2Book" && d && d.levels) {
+            var side = function (arr) {
+              return (arr || []).map(function (l) { return [parseFloat(l.px), parseFloat(l.sz)]; });
+            };
+            state.book[d.coin || state.wsCoin] = { bids: side(d.levels[0]), asks: side(d.levels[1]) };
+            render();
+          }
+        };
+
+        ws.onclose = function () { conn("down", "reconnecting"); poll(); setTimeout(connect, 3000); };
+        ws.onerror = function () { conn("down", "offline"); };
+      }
+
+      /* ---------- pricing ---------- */
+      function best(which) {
+        var b = state.book[coin()];
+        if (!b) return NaN;
+        var lv = which === "bid" ? b.bids : b.asks;
+        return lv && lv.length ? lv[0][0] : NaN;
+      }
+
+      function mark() {
+        var c = state.ctx[coin()] || {};
+        var mid = parseFloat(c.midPx), mk = parseFloat(c.markPx);
+        if (isFinite(mid) && mid > 0) return mid;
+        if (isFinite(mk) && mk > 0) return mk;
+        var bid = best("bid"), ask = best("ask");
+        if (isFinite(bid) && isFinite(ask)) return (bid + ask) / 2;
+        return NaN;
+      }
+
+      /* Walk the resting book to get a real fill price for this size, not just top-of-book. */
+      function vwap(qty) {
+        var b = state.book[coin()];
+        var lv = b && (state.side === "buy" ? b.asks : b.bids);
+        if (!lv || !lv.length || !isFinite(qty) || qty <= 0) {
+          var t = state.side === "buy" ? best("ask") : best("bid");
+          return isFinite(t) ? t : mark();
+        }
+        var left = qty, cost = 0;
+        for (var k = 0; k < lv.length && left > 1e-12; k++) {
+          var take = Math.min(left, lv[k][1]);
+          cost += take * lv[k][0];
+          left -= take;
+        }
+        if (left > 1e-12) return NaN;            /* book too thin for this size */
+        return cost / qty;
+      }
+
+      function applyLevBounds() {
+        var max = (state.meta[coin()] || {}).maxLeverage || 20;
+        el.tkLev.max = max;
+        if (state.lev > max) state.lev = max;
+        el.tkLev.value = state.lev;
+      }
+
+      /* ---------- render ---------- */
+      function render() {
+        var m = mkt(), c = state.ctx[coin()] || {}, mx = mark();
+
+        el.tkMktName.textContent = m.sym;
+        el.tkMktSub.textContent = m.label;
+
+        /* size: whichever unit is active drives the other */
+        var entryTop = state.side === "buy" ? best("ask") : best("bid");
+        if (!isFinite(entryTop)) entryTop = mx;
+
+        /* In USD mode the number typed is the collateral being put up, so the
+           position it opens is amount x leverage. In QTY mode it is the position
+           size itself and the collateral falls out of the leverage. */
+        var qty, notional;
+        if (state.unit === "usd") {
+          notional = state.amt * state.lev;
+          qty = isFinite(entryTop) && entryTop > 0 ? notional / entryTop : NaN;
+        } else {
+          qty = state.amt;
+          notional = isFinite(entryTop) ? qty * entryTop : NaN;
+        }
+
+        var entry = vwap(qty);
+        var thin = !isFinite(entry) && isFinite(qty) && qty > 0;
+        if (!isFinite(entry)) entry = entryTop;
+        if (state.unit === "usd" && isFinite(entry) && entry > 0) qty = notional / entry;
+        else if (state.unit === "qty" && isFinite(entry)) notional = qty * entry;
+
+        var margin = isFinite(notional) ? notional / state.lev : NaN;
+        var feeEx  = isFinite(notional) ? notional * TAKER_FEE : NaN;
+        var feeUs  = isFinite(notional) ? notional * (BUILDER_BPS / 10000) : NaN;
+        var fees   = feeEx + feeUs;
+
+        /* Hyperliquid liquidation, isolated margin, fresh position.
+             docs:  liq_price = price - side * margin_available / position_size / (1 - l * side)
+           Maintenance margin is half the initial margin at max leverage, so the
+           maintenance fraction mmf = 1 / (2 * maxLeverage) and l = mmf. For a new
+           isolated position, margin_available / position_size = entry * (1/lev - mmf).
+           NOTE: maxLeverage here is the top margin tier. Hyperliquid steps max leverage
+           down for large notionals (BTC 40x -> 20x above $150M), so this is optimistic
+           for size that crosses a tier. Read marginTables from `meta` to be exact. */
+        var maxLev = (state.meta[coin()] || {}).maxLeverage || 20;
+        var mmf = 1 / (2 * maxLev);
+        var s = state.side === "buy" ? 1 : -1;
+        var liq = isFinite(entry)
+          ? entry - s * (entry * (1 / state.lev - mmf)) / (1 - mmf * s)
+          : NaN;
+        if (!(liq > 0)) liq = NaN;
+
+        var fr = parseFloat(c.funding);
+
+        el.tkQty.textContent      = state.amt > 0 ? qtyFmt(qty) : "—";
+        el.tkNotional.textContent = state.amt > 0 ? usd(notional) : "—";
+        el.tkMargin.textContent   = state.amt > 0 ? usd(margin) : "—";
+        /* Only our own fee is itemised — the venue fee is identical through any
+           front-end, so showing it just inflates the number without telling the
+           user anything. It is still included in Total cost. Phantom itemises
+           their builder fee the same way; ours is 0.010% against their 0.050%. */
+        el.tkFeeUs.textContent    = state.amt > 0 ? usd(feeUs) + "  (" + (BUILDER_BPS / 100).toFixed(3) + "%)" : "—";
+        /* no size or no price feed -> unknown; priced but no level -> genuinely none */
+        el.tkLiq.textContent = !(state.amt > 0) || !isFinite(entry)
+          ? "—"
+          : (isFinite(liq) ? pxFmt(liq) : "none");
+        el.tkFunding.textContent  = isFinite(fr)
+          ? (fr >= 0 ? "+" : "") + (fr * 100).toFixed(4) + "%"
+            + (state.amt > 0 ? "  (" + usd(notional * fr) + "/h)" : "")
+          : "—";
+        el.tkTotal.textContent    = state.amt > 0 && isFinite(margin) ? usd(margin + fees) : "—";
+
+        el.tkSendLabel.textContent = (state.side === "buy" ? "Buy " : "Sell ") + m.sym;
+        el.tkSend.setAttribute("data-side", state.side);
+        el.tkSend.disabled = !(state.amt > 0 && isFinite(entry));
+
+        el.tkLevVal.innerHTML = state.lev + "&times;";
+
+        if (thin) {
+          el.tkNote.className = "tk-note err";
+          el.tkNote.textContent = "Resting book is thinner than this size — fill price shown is top-of-book only.";
+        } else if (el.tkNote.className === "tk-note err") {
+          el.tkNote.className = "tk-note";
+          el.tkNote.innerHTML = "Live prices from Hyperliquid. Signing not wired yet — this previews the exact order.";
+        }
+      }
+
+      /* ---------- interactions ---------- */
+      function setSide(v) {
+        state.side = v;
+        Array.prototype.forEach.call(el.tkSide.children, function (b) {
+          b.setAttribute("data-on", b.getAttribute("data-side") === v ? "1" : "0");
+        });
+        render();
+      }
+
+      function setUnit(v) {
+        if (state.unit === v) return;
+        var mx = mark();
+        /* carry the value across the unit switch instead of resetting it */
+        if (state.amt > 0 && isFinite(mx) && mx > 0) {
+          /* usd holds collateral, qty holds position size — leverage bridges them */
+          state.amt = v === "qty" ? (state.amt * state.lev) / mx : (state.amt * mx) / state.lev;
+          el.tkAmt.value = state.amt.toFixed(v === "qty" ? 4 : 2);
+        }
+        state.unit = v;
+        Array.prototype.forEach.call(el.tkUnit.children, function (b) {
+          b.setAttribute("data-on", b.getAttribute("data-unit") === v ? "1" : "0");
+        });
+        render();
+      }
+
+      function setAmtUsd(v) {
+        if (state.unit === "usd") { state.amt = v; el.tkAmt.value = String(v); }
+        else {
+          var mx = mark();
+          state.amt = isFinite(mx) && mx > 0 ? (v * state.lev) / mx : 0;
+          el.tkAmt.value = state.amt.toFixed(4);
+        }
+        render();
+      }
+
+      function setLev(v) {
+        var max = parseFloat(el.tkLev.max) || 20;
+        state.lev = Math.max(1, Math.min(max, v));
+        el.tkLev.value = state.lev;
+        render();
+      }
+
+      function announce() {
+        document.dispatchEvent(new CustomEvent("cactus:market", {
+          detail: { coin: coin(), sym: mkt().sym, label: mkt().label }
+        }));
+      }
+
+      function setMarket(i) {
+        state.i = i;
+        el.tkMenu.classList.remove("open");
+        el.tkMktBtn.setAttribute("aria-expanded", "false");
+        applyLevBounds();
+        retarget();
+        announce();
+        render();
+        post({ type: "metaAndAssetCtxs", dex: mkt().dex })
+          .then(function (d) { absorb(mkt().dex, d); render(); })
+          .catch(function () {});
+      }
+
+      function buildMenu() {
+        el.tkMenu.innerHTML = "";
+        MARKETS.forEach(function (m, i) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.innerHTML = "<em style='font-style:normal'>" + m.sym + "</em><span>" + (m.dex || "main") + "</span>";
+          b.onclick = function () { setMarket(i); };
+          el.tkMenu.appendChild(b);
+        });
+      }
+      buildMenu();
+
+      /* the search palette can select markets that are not in the default list */
+      window.__cactusSelect = function (sym, dex, label) {
+        var i = -1;
+        for (var k = 0; k < MARKETS.length; k++) {
+          if (MARKETS[k].sym === sym && MARKETS[k].dex === (dex || "")) { i = k; break; }
+        }
+        if (i < 0) {
+          MARKETS.push({ sym: sym, dex: dex || "", label: label || ((dex || "main") + " · perp") });
+          i = MARKETS.length - 1;
+          buildMenu();
+        }
+        setMarket(i);
+      };
+
+      el.tkMktBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var open = el.tkMenu.classList.toggle("open");
+        el.tkMktBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        Array.prototype.forEach.call(el.tkMenu.children, function (b, i) {
+          b.className = i === state.i ? "on" : "";
+        });
+      });
+      document.addEventListener("click", function () { el.tkMenu.classList.remove("open"); });
+
+      el.tkSide.addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-side]");
+        if (b) setSide(b.getAttribute("data-side"));
+      });
+      el.tkUnit.addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-unit]");
+        if (b) setUnit(b.getAttribute("data-unit"));
+      });
+      el.tkChips.addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-usd]");
+        if (b) setAmtUsd(parseFloat(b.getAttribute("data-usd")));
+      });
+      el.tkAmt.addEventListener("input", function () {
+        var v = parseFloat(el.tkAmt.value.replace(/[^0-9.]/g, ""));
+        state.amt = isFinite(v) && v > 0 ? v : 0;
+        render();
+      });
+      el.tkLev.addEventListener("input", function () { setLev(parseFloat(el.tkLev.value)); });
+
+      function submit() {
+        if (el.tkSend.disabled) return;
+        var m = mkt();
+        var entryTop = state.side === "buy" ? best("ask") : best("bid");
+        if (!isFinite(entryTop)) entryTop = mark();
+        var qty = state.unit === "usd" ? (state.amt * state.lev) / entryTop : state.amt;
+        var sd = (state.meta[coin()] || {}).szDecimals;
+        if (sd == null) sd = 4;
+
+        /* Two signed actions, in order. Leverage on Hyperliquid is a per-asset setting
+           applied with updateLeverage — it is NOT a field on the order, and it is only
+           checked when the position is opened. Then the order itself: an aggressive
+           IOC limit (5% through the book) is how Hyperliquid expresses a market order. */
+        var actions = [
+          { type: "updateLeverage", asset: coin(), isCross: false, leverage: state.lev },
+          { type: "order",
+            coin: coin(),
+            is_buy: state.side === "buy",
+            sz: parseFloat(qty.toFixed(sd)),
+            limit_px: entryTop * (state.side === "buy" ? 1.05 : 0.95),
+            order_type: { limit: { tif: "Ioc" } },
+            reduce_only: false,
+            builder: { b: "0xYOUR_BUILDER_ADDRESS", f: BUILDER_BPS * 10 } }
+        ];
+        console.log("[cactus] signed actions", actions);
+
+        el.tkNote.className = "tk-note err";
+        el.tkNote.textContent =
+          "Preview only — " + (state.side === "buy" ? "buy " : "sell ") + qty.toFixed(sd) + " " + m.sym +
+          " @ ~" + pxFmt(entryTop) + " at " + state.lev + "x isolated. Actions logged to console.";
+      }
+
+      el.tkSend.addEventListener("click", submit);
+
+      el.tkDisc.addEventListener("click", function () {
+        var open = el.tkDetails.classList.toggle("open");
+        el.tkDisc.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+
+      /* ---------- hotkeys ---------- */
+      document.addEventListener("keydown", function (e) {
+        if (!document.getElementById("joinScreen") ||
+            !document.getElementById("joinScreen").classList.contains("show")) return;
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+        var t = e.target;
+        var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA") && t.type !== "range";
+        var inAmt = t === el.tkAmt;
+
+        if (e.key === "Enter" && (inAmt || !typing)) { e.preventDefault(); submit(); return; }
+        if (e.key === "Escape") {
+          if (inAmt) { el.tkAmt.blur(); return; }
+          if (!typing) { state.amt = 0; el.tkAmt.value = ""; render(); return; }
+        }
+        if (typing) return;                       /* let the ask bar work normally */
+
+        var k = e.key.toLowerCase();
+        if (k === "b") { e.preventDefault(); setSide("buy"); }
+        else if (k === "s") { e.preventDefault(); setSide("sell"); }
+        else if (k === "u" || k === "q") { e.preventDefault(); setUnit(state.unit === "usd" ? "qty" : "usd"); }
+        else if (k === "a") { e.preventDefault(); el.tkAmt.focus(); el.tkAmt.select(); }
+        else if (k === "arrowup") { e.preventDefault(); setLev(state.lev + 1); }
+        else if (k === "arrowdown") { e.preventDefault(); setLev(state.lev - 1); }
+        else if (k >= "1" && k <= "4") {
+          e.preventDefault();
+          var chip = el.tkChips.children[parseInt(k, 10) - 1];
+          if (chip) setAmtUsd(parseFloat(chip.getAttribute("data-usd")));
+        }
+      });
+
+      /* ---------- go ---------- */
+      setSide("buy");
+      setTimeout(announce, 0);          /* after the chart module has registered */
+      bootstrap().then(connect);
+    })();
+  </script>
+
+
+  <script>
+    /* ---------- candlestick chart, Hyperliquid candles ---------- */
+    (function () {
+      var API = "https://api.hyperliquid.xyz/info";
+      var WSU = "wss://api.hyperliquid.xyz/ws";
+      var cv = document.getElementById("chart");
+      if (!cv) return;
+      var ctx = cv.getContext("2d");
+
+      var MS = { "1m": 6e4, "5m": 3e5, "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5 };
+      var INTERVALS = ["1m", "5m", "15m", "1h", "4h", "1d"];
+      var BARS = 160;
+
+      var st = { coin: "xyz:SPCX", sym: "SPCX", iv: "15m", rows: [], ws: null, sub: null, hover: null };
+
+      var elSym = document.getElementById("chSym");
+      var elLast = document.getElementById("chLast");
+      var elChg = document.getElementById("chChg");
+      var elOhlc = document.getElementById("chOhlc");
+      var elEmpty = document.getElementById("chEmpty");
+      var elInts = document.getElementById("chInts");
+
+      INTERVALS.forEach(function (iv) {
+        var b = document.createElement("button");
+        b.type = "button"; b.textContent = iv;
+        b.setAttribute("data-on", iv === st.iv ? "1" : "0");
+        b.onclick = function () { setInterval_(iv); };
+        elInts.appendChild(b);
+      });
+
+      function post(body) {
+        return fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json(); });
+      }
+      function norm(c) {
+        return { t: +c.t, o: parseFloat(c.o), h: parseFloat(c.h), l: parseFloat(c.l), c: parseFloat(c.c), v: parseFloat(c.v) };
+      }
+      function fmt(v) {
+        if (!isFinite(v)) return "—";
+        var d = v >= 1000 ? 2 : v >= 100 ? 2 : v >= 1 ? 3 : 5;
+        return v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+
+      function load() {
+        var now = Date.now();
+        elEmpty.hidden = false;
+        elEmpty.textContent = "Loading candles…";
+        return post({ type: "candleSnapshot", req: {
+          coin: st.coin, interval: st.iv,
+          startTime: now - BARS * MS[st.iv], endTime: now
+        }}).then(function (d) {
+          st.rows = (Array.isArray(d) ? d : []).map(norm).filter(function (r) { return isFinite(r.c); });
+          elEmpty.hidden = st.rows.length > 0;
+          if (!st.rows.length) elEmpty.textContent = "No candles for this market";
+          draw();
+        }).catch(function () {
+          st.rows = [];
+          elEmpty.hidden = false;
+          elEmpty.textContent = "Can’t reach Hyperliquid";
+          draw();
+        });
+      }
+
+      function subscribe(method) {
+        if (!st.ws || st.ws.readyState !== 1 || !st.sub) return;
+        st.ws.send(JSON.stringify({ method: method, subscription: { type: "candle", coin: st.sub.coin, interval: st.sub.iv } }));
+      }
+      function retarget() {
+        var next = { coin: st.coin, iv: st.iv };
+        if (st.ws && st.ws.readyState === 1) {
+          if (st.sub) subscribe("unsubscribe");
+          st.sub = next; subscribe("subscribe");
+        } else { st.sub = next; }
+      }
+      function connect() {
+        var ws;
+        try { ws = new WebSocket(WSU); } catch (e) { return; }
+        st.ws = ws;
+        ws.onopen = function () { st.sub = { coin: st.coin, iv: st.iv }; subscribe("subscribe"); };
+        ws.onmessage = function (ev) {
+          var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+          if (m.channel !== "candle" || !m.data) return;
+          var c = norm(m.data), n = st.rows.length;
+          if (n && st.rows[n - 1].t === c.t) st.rows[n - 1] = c;
+          else { st.rows.push(c); if (st.rows.length > BARS) st.rows.shift(); }
+          elEmpty.hidden = true;
+          draw();
+        };
+        ws.onclose = function () { setTimeout(connect, 3000); };
+      }
+
+      function setInterval_(iv) {
+        if (iv === st.iv) return;
+        st.iv = iv;
+        Array.prototype.forEach.call(elInts.children, function (b) {
+          b.setAttribute("data-on", b.textContent === iv ? "1" : "0");
+        });
+        retarget();
+        load();
+      }
+
+      /* the ticket announces which market is selected */
+      document.addEventListener("cactus:market", function (e) {
+        if (!e.detail || e.detail.coin === st.coin) return;
+        st.coin = e.detail.coin; st.sym = e.detail.sym;
+        elSym.textContent = st.sym;
+        retarget();
+        load();
+      });
+
+      /* ---------- drawing ---------- */
+      function draw() {
+        var dpr = window.devicePixelRatio || 1;
+        var W = cv.clientWidth, H = cv.clientHeight;
+        if (!W || !H) return;
+        if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+          cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+
+        var rows = st.rows;
+        var padR = 62, padB = 22, padT = 10, padL = 8;
+        var plotW = W - padR - padL, plotH = H - padT - padB;
+        if (plotW <= 0 || plotH <= 0) return;
+
+        if (!rows.length) return;
+
+        var min = Infinity, max = -Infinity;
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].l < min) min = rows[i].l;
+          if (rows[i].h > max) max = rows[i].h;
+        }
+        if (!isFinite(min) || !isFinite(max)) return;
+        if (max === min) { max += max * 0.01 || 1; min -= min * 0.01 || 1; }
+        var pad = (max - min) * 0.06; min -= pad; max += pad;
+
+        function y(p) { return padT + (max - p) / (max - min) * plotH; }
+        var cw = plotW / rows.length;
+        function x(i) { return padL + i * cw + cw / 2; }
+
+        /* grid + right-hand price axis */
+        ctx.font = "10px ui-monospace, SF Mono, Menlo, monospace";
+        ctx.textBaseline = "middle";
+        for (var g = 0; g <= 4; g++) {
+          var p = min + (max - min) * g / 4, yy = Math.round(y(p)) + 0.5;
+          ctx.strokeStyle = "rgba(243,246,252,0.055)";
+          ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(padL + plotW, yy); ctx.stroke();
+          ctx.fillStyle = "rgba(243,246,252,0.4)";
+          ctx.textAlign = "left";
+          ctx.fillText(fmt(p), padL + plotW + 7, yy);
+        }
+
+        /* candles */
+        var bodyW = Math.max(1, Math.min(cw * 0.68, 14));
+        for (var k = 0; k < rows.length; k++) {
+          var r = rows[k], up = r.c >= r.o;
+          var col = up ? "#5fd39a" : "#f2705f";
+          var cx = x(k);
+          ctx.strokeStyle = col; ctx.fillStyle = col;
+          ctx.beginPath();
+          ctx.moveTo(Math.round(cx) + 0.5, y(r.h));
+          ctx.lineTo(Math.round(cx) + 0.5, y(r.l));
+          ctx.stroke();
+          var yo = y(r.o), yc = y(r.c);
+          var top = Math.min(yo, yc), h = Math.max(1, Math.abs(yc - yo));
+          ctx.fillRect(cx - bodyW / 2, top, bodyW, h);
+        }
+
+        /* last price marker */
+        var last = rows[rows.length - 1];
+        var ly = y(last.c), lup = last.c >= last.o;
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = lup ? "rgba(95,211,154,0.55)" : "rgba(242,112,95,0.55)";
+        ctx.beginPath(); ctx.moveTo(padL, Math.round(ly) + 0.5); ctx.lineTo(padL + plotW, Math.round(ly) + 0.5); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = lup ? "#5fd39a" : "#f2705f";
+        ctx.fillRect(padL + plotW + 3, ly - 8, padR - 6, 16);
+        ctx.fillStyle = "#07100a"; ctx.textAlign = "left";
+        ctx.fillText(fmt(last.c), padL + plotW + 7, ly);
+
+        /* crosshair */
+        if (st.hover != null) {
+          var hi = Math.max(0, Math.min(rows.length - 1, Math.floor((st.hover.x - padL) / cw)));
+          var hx = Math.round(x(hi)) + 0.5;
+          ctx.setLineDash([2, 3]);
+          ctx.strokeStyle = "rgba(243,246,252,0.28)";
+          ctx.beginPath(); ctx.moveTo(hx, padT); ctx.lineTo(hx, padT + plotH); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(padL, Math.round(st.hover.y) + 0.5); ctx.lineTo(padL + plotW, Math.round(st.hover.y) + 0.5); ctx.stroke();
+          ctx.setLineDash([]);
+          showOhlc(rows[hi]);
+        } else {
+          showOhlc(last);
+        }
+
+        /* header readout */
+        var first = rows[0];
+        elLast.textContent = fmt(last.c);
+        var chg = (last.c / first.o - 1) * 100;
+        elChg.textContent = (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%";
+        elChg.className = "ch-chg " + (chg >= 0 ? "up" : "dn");
+      }
+
+      function showOhlc(r) {
+        if (!r) { elOhlc.innerHTML = ""; return; }
+        elOhlc.innerHTML =
+          "O <b>" + fmt(r.o) + "</b> H <b>" + fmt(r.h) + "</b> L <b>" + fmt(r.l) + "</b> C <b>" + fmt(r.c) + "</b>";
+      }
+
+      cv.addEventListener("mousemove", function (e) {
+        var b = cv.getBoundingClientRect();
+        st.hover = { x: e.clientX - b.left, y: e.clientY - b.top };
+        draw();
+      });
+      cv.addEventListener("mouseleave", function () { st.hover = null; draw(); });
+
+      var ro = window.ResizeObserver ? new ResizeObserver(function () { draw(); }) : null;
+      if (ro) ro.observe(cv.parentNode);
+      window.addEventListener("resize", draw);
+
+      window.__chartFeed = function (rows) { st.rows = rows.map(norm); elEmpty.hidden = true; draw(); };
+      load().then(connect);
+      setInterval(function () { if (!st.ws || st.ws.readyState !== 1) load(); }, 15000);
+    })();
+  </script>
+
+
+  <script>
+    /* ---------- sidebar routing: trade / connectors ---------- */
+    (function () {
+      var nav = document.getElementById("panelNav");
+      if (!nav) return;
+      var pages = { trade: document.getElementById("pageTrade"), ask: document.getElementById("pageAsk") };
+
+      function show(name) {
+        Object.keys(pages).forEach(function (k) {
+          if (pages[k]) pages[k].setAttribute("data-on", k === name ? "1" : "0");
+        });
+        Array.prototype.forEach.call(nav.children, function (b) {
+          b.setAttribute("data-on", b.getAttribute("data-page") === name ? "1" : "0");
+        });
+        if (location.hash.slice(1) !== name) history.replaceState(null, "", "#" + name);
+        /* the canvas has no size while hidden, so redraw once it is back */
+        if (name === "trade") window.dispatchEvent(new Event("resize"));
+        if (name === "ask") { var i = document.getElementById("askInput"); if (i) i.focus(); }
+      }
+
+      nav.addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-page]");
+        if (b) show(b.getAttribute("data-page"));
+      });
+      window.addEventListener("hashchange", function () {
+        var h = location.hash.slice(1);
+        if (pages[h]) show(h);
+      });
+      show(pages[location.hash.slice(1)] ? location.hash.slice(1) : "trade");
+    })();
+  </script>
+
+
+  <script>
+    /* ---------- market search palette (sidebar button, or the / key) ---------- */
+    (function () {
+      var API = "https://api.hyperliquid.xyz/info";
+      var DEXES = ["", "xyz"];            /* main perp dex + the HIP-3 pre-IPO dex */
+
+      var root = document.getElementById("cmd");
+      var input = document.getElementById("cmdInput");
+      var list = document.getElementById("cmdList");
+      var scrim = document.getElementById("cmdScrim");
+      if (!root || !input) return;
+
+      var all = [], view = [], sel = 0, loaded = false;
+
+      function post(body) {
+        return fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json(); });
+      }
+
+      function loadUniverse() {
+        if (loaded) return Promise.resolve();
+        return Promise.all(DEXES.map(function (d) {
+          return post({ type: "meta", dex: d }).then(function (m) {
+            (m && m.universe ? m.universe : []).forEach(function (u) {
+              if (u.isDelisted) return;
+              all.push({ sym: u.name, dex: d, lev: u.maxLeverage || 0 });
+            });
+          }).catch(function () {});
+        })).then(function () {
+          loaded = all.length > 0;
+          all.sort(function (a, b) { return a.sym.localeCompare(b.sym); });
+        });
+      }
+
+      function score(m, q) {
+        var s = m.sym.toLowerCase();
+        if (s === q) return 0;
+        if (s.indexOf(q) === 0) return 1;
+        if (s.indexOf(q) > 0) return 2;
+        return -1;
+      }
+
+      function render() {
+        var q = input.value.trim().toLowerCase();
+        view = !q ? all.slice(0, 60)
+          : all.map(function (m) { return { m: m, s: score(m, q) }; })
+               .filter(function (r) { return r.s >= 0; })
+               .sort(function (a, b) { return a.s - b.s || a.m.sym.length - b.m.sym.length; })
+               .slice(0, 60).map(function (r) { return r.m; });
+
+        if (!view.length) {
+          list.innerHTML = '<div class="cmd-empty">' +
+            (loaded ? "No market matches &ldquo;" + q.replace(/[<>&]/g, "") + "&rdquo;" : "Loading markets&hellip;") + "</div>";
+          return;
+        }
+        sel = Math.max(0, Math.min(sel, view.length - 1));
+        list.innerHTML = "";
+        view.forEach(function (m, i) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "cmd-row";
+          b.setAttribute("data-sel", i === sel ? "1" : "0");
+          b.innerHTML = "<b>" + m.sym + "</b><i>" + (m.dex ? m.dex + " · pre-IPO" : "perp") + "</i>" +
+                        (m.lev ? "<em>" + m.lev + "&times;</em>" : "");
+          b.onclick = function () { choose(i); };
+          b.onmouseenter = function () { sel = i; mark(); };
+          list.appendChild(b);
+        });
+      }
+
+      function mark() {
+        Array.prototype.forEach.call(list.children, function (b, i) {
+          if (b.setAttribute) b.setAttribute("data-sel", i === sel ? "1" : "0");
+        });
+        var cur = list.children[sel];
+        if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest" });
+      }
+
+      function choose(i) {
+        var m = view[i];
+        if (!m) return;
+        close();
+        if (window.__cactusSelect) window.__cactusSelect(m.sym, m.dex);
+      }
+
+      function open_() {
+        root.hidden = false;
+        input.value = "";
+        sel = 0;
+        render();
+        input.focus();
+        loadUniverse().then(render);
+      }
+      function close() { root.hidden = true; input.blur(); }
+
+      input.addEventListener("input", function () { sel = 0; render(); });
+      scrim.addEventListener("click", close);
+
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { e.preventDefault(); close(); }
+        else if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, view.length - 1); mark(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); mark(); }
+        else if (e.key === "Enter") { e.preventDefault(); choose(sel); }
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        var t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA");
+        if (e.key === "/" && !typing && root.hidden) { e.preventDefault(); open_(); }
+        else if (e.key === "Escape" && !root.hidden) { e.preventDefault(); close(); }
+      });
+
+      var nav = document.getElementById("panelNav");
+      if (nav) nav.addEventListener("click", function (e) {
+        var b = e.target.closest('button[data-action="search"]');
+        if (b) open_();
+      });
+    })();
+  </script>
+
+
 
   </body>
 </html>
