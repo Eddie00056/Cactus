@@ -1263,7 +1263,7 @@
         meta: {},             /* coin -> { szDecimals, maxLeverage } */
         ctx:  {},             /* coin -> { markPx, midPx, prevDayPx, funding } */
         book: {},             /* coin -> { bids:[[px,sz]], asks:[[px,sz]] } */
-        ws: null, wsCoin: null, pollTimer: null
+        ws: null, wsCoin: null, pollTimer: null, pingTimer: null
       };
 
       function mkt()  { return MARKETS[state.i]; }
@@ -1364,6 +1364,12 @@
           clearInterval(state.pollTimer);
           state.wsCoin = coin();
           sub("subscribe");
+          /* Hyperliquid closes a connection that has sent nothing for 60s. Without
+             this the socket dies every minute and prices stall until it reconnects. */
+          clearInterval(state.pingTimer);
+          state.pingTimer = setInterval(function () {
+            if (ws.readyState === 1) ws.send(JSON.stringify({ method: "ping" }));
+          }, 30000);
         };
 
         ws.onmessage = function (ev) {
@@ -1382,7 +1388,12 @@
           }
         };
 
-        ws.onclose = function () { conn("down", "reconnecting"); poll(); setTimeout(connect, 3000); };
+        ws.onclose = function () {
+          clearInterval(state.pingTimer);
+          conn("down", "reconnecting");
+          poll();
+          setTimeout(connect, 3000);
+        };
         ws.onerror = function () { conn("down", "offline"); };
       }
 
@@ -1721,7 +1732,7 @@
       var INTERVALS = ["1m", "5m", "15m", "1h", "4h", "1d"];
       var BARS = 160;
 
-      var st = { coin: "xyz:SPCX", sym: "SPCX", iv: "15m", rows: [], ws: null, sub: null, hover: null };
+      var st = { coin: "xyz:SPCX", sym: "SPCX", iv: "15m", rows: [], ws: null, sub: null, hover: null, ping: null };
 
       var elSym = document.getElementById("chSym");
       var elLast = document.getElementById("chLast");
@@ -1773,7 +1784,10 @@
 
       function subscribe(method) {
         if (!st.ws || st.ws.readyState !== 1 || !st.sub) return;
+        /* candle carries the bar; trades carries every execution, so the last price
+           and the forming bar move on each tick instead of waiting for a candle push */
         st.ws.send(JSON.stringify({ method: method, subscription: { type: "candle", coin: st.sub.coin, interval: st.sub.iv } }));
+        st.ws.send(JSON.stringify({ method: method, subscription: { type: "trades", coin: st.sub.coin } }));
       }
       function retarget() {
         var next = { coin: st.coin, iv: st.iv };
@@ -1786,9 +1800,30 @@
         var ws;
         try { ws = new WebSocket(WSU); } catch (e) { return; }
         st.ws = ws;
-        ws.onopen = function () { st.sub = { coin: st.coin, iv: st.iv }; subscribe("subscribe"); };
+        ws.onopen = function () {
+          st.sub = { coin: st.coin, iv: st.iv };
+          subscribe("subscribe");
+          clearInterval(st.ping);
+          st.ping = setInterval(function () {
+            if (ws.readyState === 1) ws.send(JSON.stringify({ method: "ping" }));
+          }, 30000);
+        };
         ws.onmessage = function (ev) {
           var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+          if (m.channel === "trades" && Array.isArray(m.data) && m.data.length) {
+            /* fold each execution into the bar that is still forming */
+            var last = st.rows[st.rows.length - 1];
+            if (!last) return;
+            for (var k = 0; k < m.data.length; k++) {
+              var px = parseFloat(m.data[k].px);
+              if (!isFinite(px)) continue;
+              last.c = px;
+              if (px > last.h) last.h = px;
+              if (px < last.l) last.l = px;
+            }
+            draw();
+            return;
+          }
           if (m.channel !== "candle" || !m.data) return;
           var c = norm(m.data), n = st.rows.length;
           if (n && st.rows[n - 1].t === c.t) st.rows[n - 1] = c;
@@ -1796,7 +1831,7 @@
           elEmpty.hidden = true;
           draw();
         };
-        ws.onclose = function () { setTimeout(connect, 3000); };
+        ws.onclose = function () { clearInterval(st.ping); setTimeout(connect, 3000); };
       }
 
       function setInterval_(iv) {
@@ -1928,7 +1963,6 @@
       if (ro) ro.observe(cv.parentNode);
       window.addEventListener("resize", draw);
 
-      window.__chartFeed = function (rows) { st.rows = rows.map(norm); elEmpty.hidden = true; draw(); };
       load().then(connect);
       setInterval(function () { if (!st.ws || st.ws.readyState !== 1) load(); }, 15000);
     })();
